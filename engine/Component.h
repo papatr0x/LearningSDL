@@ -1,0 +1,54 @@
+// Created by Patricio Palma on 05-03-26.
+
+#ifndef LETSLEARNSDL_COMPONENT_H
+#define LETSLEARNSDL_COMPONENT_H
+
+#include <string>
+
+struct SDL_Renderer;
+class Object;
+class Scene;
+
+class Component {
+public:
+    explicit Component(Object* owner, std::string id) : owner(owner), name(std::move(id)) {}
+    virtual ~Component() = default;
+
+    // Not copyable or movable — components belong to a single Object.
+    Component(const Component&)            = delete;
+    Component& operator=(const Component&) = delete;
+    Component(Component&&)                 = delete;
+    Component& operator=(Component&&)      = delete;
+
+    virtual void onStart() noexcept {}
+    virtual void updateComponent(const float dt) noexcept {}
+    virtual void updatePhysics(const float fixedDt) noexcept {}
+    virtual void render(SDL_Renderer* renderer) noexcept {}
+
+    Object* getOwner() const { return owner; }
+    bool isEnabled() const { return enabled; }
+    void setEnabled(bool value) { enabled = value; }
+    const std::string& getName() const { return name; }
+    void setUpdateInterval(float seconds) { intervalSeconds = seconds; }
+    float getUpdateInterval() const { return intervalSeconds; }
+    bool isPendingDestroy() const { return pendingDestroy; }
+    void destroy() { pendingDestroy = true; }
+    int getRenderLayer() const { return renderLayer; }
+    void setRenderLayer(const int order) { renderLayer = order; }
+    bool isScreenSpace() const { return screenSpace; }
+    void setScreenSpace(bool value) { screenSpace = value; }
+
+    friend class Scene;
+
+protected:
+    Object* owner{};
+    std::string name;
+    bool enabled{true};
+    float intervalSeconds{0.0f};
+    float intervalAccumulator{0.0f};
+    bool pendingDestroy{false};
+    int renderLayer{0};
+    bool screenSpace{false};
+};
+
+#endif //LETSLEARNSDL_COMPONENT_H
