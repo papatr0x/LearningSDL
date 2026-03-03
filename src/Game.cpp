@@ -1,6 +1,7 @@
 // Created by Patricio Palma on 28-02-26.
 
 #include "Game.h"
+#include "TextureManager.h"
 #include <iostream>
 
 void Game::init(const char* title, int width, int height) {
@@ -20,19 +21,22 @@ void Game::init(const char* title, int width, int height) {
 
     SDL_SetRenderDrawColor(m_renderer, 0x1a, 0x2a, 0x3a, 0xff);
 
-    load_texture();
-
     std::clog << "SDL Init succeeded\n";
     m_running = true;
+
+    TextureManager::instance().load("assets/fish-45x40.png", "fish", m_renderer);
 }
 
 void Game::render() {
     SDL_RenderClear(m_renderer);
-    SDL_RenderTexture(m_renderer, m_texture, &m_src_rect, &m_dest_rect);
+    TextureManager::instance().draw("fish", 100.f, 100.f, 45.f, 40.f, m_renderer);
+    TextureManager::instance().drawFrame("fish", 50.f, 0.f, 45.f, 40.f, 1, m_currentFrame,
+        m_renderer);
     SDL_RenderPresent(m_renderer);
 }
 
 void Game::update() {
+    m_currentFrame = int(((SDL_GetTicks() / 100) % 5));
 }
 
 void Game::handleEvents() {
@@ -49,14 +53,4 @@ void Game::shutdown() const {
     SDL_DestroyWindow(m_window);
     SDL_DestroyRenderer(m_renderer);
     SDL_Quit();
-}
-
-void Game::load_texture() {
-    SDL_Surface* surface = SDL_LoadPNG("assets/fish.png");
-    m_texture = SDL_CreateTextureFromSurface(m_renderer, surface);
-    SDL_DestroySurface(surface);
-
-    SDL_GetTextureSize(m_texture, &m_src_rect.w, &m_src_rect.h);
-
-    m_dest_rect = m_src_rect;
 }

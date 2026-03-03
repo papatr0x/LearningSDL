@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 4.1)
 project(LetsLearnSDL)
 
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
