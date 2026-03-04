@@ -8,26 +8,28 @@
 class GameObject {
 public:
     virtual ~GameObject() = default;
-    virtual void update() { std::cout << "Updating GameObject\n"; }
+    virtual void update(float deltaTime) { (void)deltaTime; std::cout << "Updating GameObject\n"; }
 };
 
 class SceneGameObject : public GameObject {
 public:
-    virtual void draw(SDL_Renderer* renderer) { std::cout << "Drawing SceneGameObject\n"; }
-    virtual void clean() { std::cout << "Cleaning SceneGameObject\n"; }
-    void load(int x, int y, int width, int height, const std::string& textureId);
+    virtual void draw(SDL_Renderer* renderer);
+
+    virtual void clean();
+
+    virtual void load(float x, float y, float width, float height, const std::string& textureId);
+    void update(float deltaTime) override;
+
 protected:
-    int m_x{};
-    int m_y{};
-    //int m_scale{}
-    //int m_rotation{};
+    float m_x{};
+    float m_y{};
 
     // this should be migrated to a texture separate class
     std::string m_textureId;
     int m_currentFrame{};
     int m_currentRow{};
-    int m_width{};
-    int m_height{};
+    float m_width{};
+    float m_height{};
 };
 
 #endif //LETSLEARNSDL_GAMEOBJECT_H

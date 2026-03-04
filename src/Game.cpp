@@ -18,25 +18,30 @@ void Game::init(const char* title, int width, int height) {
     if (!m_renderer) {
         std::cerr << "SDL could not create renderer. Error: " << SDL_GetError() << "\n";
     }
+    SDL_SetRenderVSync(m_renderer, 1);
 
     SDL_SetRenderDrawColor(m_renderer, 0x1a, 0x2a, 0x3a, 0xff);
 
     std::clog << "SDL Init succeeded\n";
     m_running = true;
 
+    // Game init
     TextureManager::instance().load("assets/fish-45x40.png", "fish", m_renderer);
+
+    m_go.load(100, 100, 45, 40, "fish");
+    m_player.load(300, 300, 45, 40, "fish");
 }
 
 void Game::render() {
     SDL_RenderClear(m_renderer);
-    TextureManager::instance().draw("fish", 100.f, 100.f, 45.f, 40.f, m_renderer);
-    TextureManager::instance().drawFrame("fish", 50.f, 0.f, 45.f, 40.f, 1, m_currentFrame,
-        m_renderer);
+    m_go.draw(m_renderer);
+    m_player.draw(m_renderer);
     SDL_RenderPresent(m_renderer);
 }
 
-void Game::update() {
-    m_currentFrame = int(((SDL_GetTicks() / 100) % 5));
+void Game::update(float deltaTime) {
+    m_go.update(deltaTime);
+    m_player.update(deltaTime);
 }
 
 void Game::handleEvents() {
