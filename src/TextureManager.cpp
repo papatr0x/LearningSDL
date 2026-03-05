@@ -3,7 +3,7 @@
 #include "TextureManager.h"
 #include <iostream>
 
-void TextureManager::drawFrame(const TextureID& id, const float x, const float y,
+void TextureManager::drawFrame(const std::string& id, const float x, const float y,
     const float width, const float height,  const int currentRow,
     const int currentFrame, SDL_Renderer* renderer, SDL_FlipMode flip) {
 
@@ -23,7 +23,7 @@ void TextureManager::drawFrame(const TextureID& id, const float x, const float y
 
 }
 
-void TextureManager::draw(const TextureID& id, const float x, const float y, const float width,
+void TextureManager::draw(const std::string& id, const float x, const float y, const float width,
                           const float height, SDL_Renderer* renderer, const SDL_FlipMode flip) {
     SDL_FRect src{};
     SDL_FRect dest{};
@@ -37,7 +37,7 @@ void TextureManager::draw(const TextureID& id, const float x, const float y, con
     SDL_RenderTextureRotated(renderer, m_textureMap[id], &src, &dest, 0.f, &center, flip);
 }
 
-bool TextureManager::load(const std::string& filename, const TextureID& id, SDL_Renderer* renderer) {
+bool TextureManager::load(const std::string& filename, const std::string& id, SDL_Renderer* renderer) {
     SDL_Surface* tempSurface = SDL_LoadPNG(filename.c_str());
     if (!tempSurface) {
         std::cerr << "failed to load surface for " << filename << "\n";

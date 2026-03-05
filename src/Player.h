@@ -3,16 +3,15 @@
 #ifndef LETSLEARNSDL_PLAYER_H
 #define LETSLEARNSDL_PLAYER_H
 
-#include "GameObject.h"
+#include "Object.h"
 
-using TextureId = std::string;
-
-class Player : public SceneGameObject {
+class Player : public Object {
 public:
+    explicit Player(const std::string& name) : Object(name) { }
     // void load(int x, int y, int width, int height, const TextureId& id) override;
     // void draw(SDL_Renderer* renderer) override;
-    void update(float deltaTime) override;
-    void clean() override;
+    // void update(float deltaTime) override;
+    // void clean() override;
 };
 
 #endif //LETSLEARNSDL_PLAYER_H

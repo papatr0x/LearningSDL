@@ -1,10 +1,18 @@
 // Created by Patricio Palma on 28-02-26.
 
-#include "Game.h"
+#include "GameEngine.h"
 #include "TextureManager.h"
+#include "Enemy.h"
 #include <iostream>
+#include <memory>
+#include <algorithm>
 
-void Game::init(const char* title, int width, int height) {
+GameEngine& GameEngine::instance() {
+    static GameEngine instance;
+    return instance;
+}
+
+void GameEngine::engineInit(const char* title, int width, int height) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << "\n";
         return;
@@ -26,25 +34,28 @@ void Game::init(const char* title, int width, int height) {
     m_running = true;
 
     // Game init
-    TextureManager::instance().load("assets/fish-45x40.png", "fish", m_renderer);
+    // TextureManager::instance().load("assets/fish-45x40.png", "fish", m_renderer);
+    // std::shared_ptr<SceneGameObject> tempGameObject = std::make_shared<Enemy>();
+    // // tempGameObject->load(0, 0, 60, 60, "fish");
+    // m_sceneObjects.push_back(std::move(tempGameObject));
 
-    m_go.load(100, 100, 45, 40, "fish");
-    m_player.load(300, 300, 45, 40, "fish");
 }
 
-void Game::render() {
+void GameEngine::render() {
     SDL_RenderClear(m_renderer);
-    m_go.draw(m_renderer);
-    m_player.draw(m_renderer);
+    for (auto& go : m_sceneObjects) {
+        go->render(m_renderer);
+    }
     SDL_RenderPresent(m_renderer);
 }
 
-void Game::update(float deltaTime) {
-    m_go.update(deltaTime);
-    m_player.update(deltaTime);
+void GameEngine::update(float deltaTime) {
+    for (auto& go : m_sceneObjects) {
+        go->update(deltaTime);
+    }
 }
 
-void Game::handleEvents() {
+void GameEngine::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_EVENT_QUIT) {
@@ -53,7 +64,7 @@ void Game::handleEvents() {
     }
 }
 
-void Game::shutdown() const {
+void GameEngine::shutdown() const {
     std::clog << "shutting down game\n";
     SDL_DestroyWindow(m_window);
     SDL_DestroyRenderer(m_renderer);

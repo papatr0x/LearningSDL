@@ -1,23 +1,30 @@
 // Created by Patricio Palma on 28-02-26.
 
-#include "Game.h"
-#include <iostream>
+#include "Enemy.h"
+#include "GameEngine.h"
+#include "Player.h"
+
+void initGame() {
+    GameEngine& engine = GameEngine::instance();
+    Object* player = engine.addObjectToScene<Player>("Player");
+    Object* enemy = engine.addObjectToScene<Enemy>("Enemy");
+}
 
 int main() {
-    auto game = std::make_unique<Game>();
-    game->init("SDL Game", 800, 600);
+    GameEngine& engine = GameEngine::instance();
+    engine.engineInit("SDL Game", 800, 600);
 
     uint64_t lastTime = SDL_GetTicks();
 
-    while (game->running()) {
+    while (engine.running()) {
         uint64_t currentTime = SDL_GetTicks();
         float deltaTime = static_cast<float>(currentTime - lastTime) / 1000.0f;
         lastTime = currentTime;
 
-        game->handleEvents();
-        game->update(deltaTime);
-        game->render();
+        engine.handleEvents();
+        engine.update(deltaTime);
+        engine.render();
     }
-    game->shutdown();
+    engine.shutdown();
     return EXIT_SUCCESS;
 }
