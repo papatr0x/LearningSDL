@@ -3,6 +3,7 @@
 #ifndef LETSLEARNSDL_OBJECT_H
 #define LETSLEARNSDL_OBJECT_H
 #include "Component.h"
+#include "Transform.h"
 #include <vector>
 #include <memory>
 #include <functional>
@@ -30,7 +31,7 @@ public:
     T* addComponent(Args&&... args) {
         static_assert(std::is_base_of_v<Component, T>, "T MUST derive of Component");
 
-        auto component = std::make_unique<T>(std::forward<Args>(args)...);
+        auto component = std::make_unique<T>(this, std::forward<Args>(args)...);
         T* ptr = component.get();
         components.push_back(std::move(component));
         if (onComponentAdded)
@@ -65,6 +66,8 @@ public:
     void setActive(bool value) { active = value; }
     const std::string& getTag() const { return tag; }
     void setTag(const std::string& newTag) { tag = newTag; }
+
+    Transform transform;
 
 protected:
     std::string name;

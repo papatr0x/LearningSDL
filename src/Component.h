@@ -9,7 +9,7 @@ class Object;
 
 class Component {
 public:
-    explicit Component(std::string name) : name(std::move(name)) { }
+    explicit Component(Object* owner, std::string name) : owner(owner), name(std::move(name)) {}
     virtual ~Component() = default;
 
     // Not copyable or movable — components belong to a single Object.
@@ -18,16 +18,17 @@ public:
     Component(Component&&)                 = delete;
     Component& operator=(Component&&)      = delete;
 
-    virtual void update(float dt, Object* owner) noexcept {}
+    virtual void update(float dt) noexcept {}
     virtual void render(SDL_Renderer* renderer) noexcept {}
 
     bool isEnabled() const { return enabled; }
     void setEnabled(bool value) { enabled = value; }
-    std::string getName() const { return name; }
+    const std::string& getName() const { return name; }
 
-private:
+protected:
     std::string name;
     bool enabled = true;
+    Object* owner{};
 };
 
 #endif //LETSLEARNSDL_COMPONENT_H

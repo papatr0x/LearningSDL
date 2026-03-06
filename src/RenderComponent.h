@@ -6,29 +6,25 @@
 
 #include "Component.h"
 #include "Texture.h"
-#include "Transform.h"
 
 class RenderComponent : public Component {
 public:
-    explicit RenderComponent(const std::string& name) : Component(name) { }
+    explicit RenderComponent(Object* owner, const std::string& name) : Component(owner, name) {}
 
     void setTexture(Texture* tex) {
-        if (!tex) {
-            SDL_Log("RenderComponent::setTexture - texture is nullptr");
-            return;
-        }
-        if (!tex->isValid()) {
-            SDL_Log("RenderComponent::setTexture - texture is not valid");
+        if (!tex || !tex->isValid()) {
+            SDL_Log("RenderComponent::setTexture - texture is nullptr or invalid");
             return;
         }
         texture = tex;
     }
 
     // Non-owning Transform: RenderComponent reads the position and size from it.
-    void setTransformPtr(const Transform* t) { transform = t; }
+    // void setTransformPtr(const Transform* t) { transform = t; }
 
     void render(SDL_Renderer* renderer) noexcept override {
-        if (!isEnabled()) return;
+        if (!isEnabled())
+            return;
         if (!renderer) {
             SDL_Log("RenderComponent::render - renderer is nullptr");
             return;
@@ -37,31 +33,14 @@ public:
             SDL_Log("RenderComponent::render - invalid texture");
             return;
         }
-        if (!transform) {
-            SDL_Log("RenderComponent::render - no Transform set, nothing to render");
-            return;
-        }
 
-        // Base size: natural texture size, overridden by Transform if set
-        float w = texture->getWidth();
-        float h = texture->getHeight();
-        float x = 0.0f;
-        float y = 0.0f;
+        SDL_FRect dst { owner->transform.position.x, owner->transform.position.y,
+            (float)texture->getWidth(), (float)texture->getHeight() };
 
-        if (transform) {
-            x = transform->x;
-            y = transform->y;
-            if (transform->width  > 0.0f) w = transform->width;
-            if (transform->height > 0.0f) h = transform->height;
-            w *= transform->scaleX;
-            h *= transform->scaleY;
-        }
-
-        SDL_FRect dst { x, y, w, h };
-
-        if (transform && transform->rotation != 0.0f) {
-            SDL_RenderTextureRotated(renderer, texture->get(), nullptr, &dst,
-                                     transform->rotation, nullptr, SDL_FLIP_NONE);
+        if (owner->transform.rotation != 0.0f) {
+            SDL_RenderTextureRotated(
+                    renderer, texture->get(), nullptr, &dst, owner->transform.rotation,
+                    nullptr, SDL_FLIP_NONE);
         } else {
             SDL_RenderTexture(renderer, texture->get(), nullptr, &dst);
         }
@@ -69,7 +48,7 @@ public:
 
 private:
     Texture*    texture{};    // no-owning
-    const Transform*  transform{};  // no-owning
+    // const Transform*  transform{};  // no-owning
 };
 
 #endif //LETSLEARNSDL_RENDERCOMPONENT_H

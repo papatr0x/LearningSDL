@@ -13,14 +13,14 @@ public:
     // without capturing raw component pointers.
     using UpdateFn = std::function<void(float dt, Object* owner)>;
 
-    explicit ScriptComponent(const std::string& name, UpdateFn fn)
-        : Component(name), updateFn(std::move(fn))
+    explicit ScriptComponent(Object* owner, const std::string& name, UpdateFn fn) : Component
+    (owner, name), updateFn(std::move(fn))
     {
         if (!updateFn)
             SDL_Log("ScriptComponent - update function is null");
     }
 
-    void update(float dt, Object* owner) noexcept override {
+    void update(float dt) noexcept override {
         if (!isEnabled() || !updateFn) return;
         updateFn(dt, owner);
     }

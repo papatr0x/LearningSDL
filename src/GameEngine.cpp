@@ -46,7 +46,7 @@ void GameEngine::render() {
 void GameEngine::update(float deltaTime) {
     for (auto& [owner, comp] : m_componentPool) {
         if (owner->isActive() && comp->isEnabled())
-            comp->update(deltaTime, owner);
+            comp->update(deltaTime);
     }
 }
 

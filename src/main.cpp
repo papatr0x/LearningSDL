@@ -2,7 +2,6 @@
 
 #include "GameEngine.h"
 #include "RenderComponent.h"
-#include "SceneObject.h"
 #include "ScriptComponent.h"
 #include "TextureManager.h"
 #include <cmath>
@@ -12,47 +11,46 @@ void initGame() {
     TextureManager& texManager = TextureManager::instance();
 
     // --- Player ---
-    auto player  = engine.addObjectToScene<SceneObject>("Player");
+    auto player  = engine.addObjectToScene<Object>("Player");
     player->setTag("player");
-    player->setTransform(Transform::make_area(112,112));
-
     auto playerRenderComp = player->addComponent<RenderComponent>("Player RenderComponent");
     playerRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-gold_112x112.png"));
-    playerRenderComp->setTransformPtr(player->getTransform());
-
     float angle = 0.0f;
-    player->addComponent<ScriptComponent>("Player Script", [angle, player](float dt, Object* /*owner*/) mutable {
+    player->addComponent<ScriptComponent>("Player Script", [angle](float dt, Object* player) mutable {
         int w, h;
         SDL_GetWindowSize(GameEngine::instance().getWindow(), &w, &h);
         const float centerX = static_cast<float>(w) * 0.5f;
         const float centerY = static_cast<float>(h) * 0.5f;
-        const float radius  = 100.0f;
-        const float speed   = 1.0f;
+        constexpr float radius  = 200.0f;
+        constexpr float speed   = 1.0f;
         angle += speed * dt;
-        player->setTransform(Transform::make_position(centerX + radius * std::cos(angle),
-                                                      centerY + radius * std::sin(angle)));
+        player->transform.position.x = centerX + radius * std::cos(angle) - 56;
+        player->transform.position.y = centerY + radius * std::sin(angle) - 56;
     });
 
     // --- Enemy ---
-    auto enemy  = engine.addObjectToScene<SceneObject>("Enemy");
+    auto enemy  = engine.addObjectToScene<Object>("Enemy");
     enemy->setTag("enemy");
-    enemy->setTransform(Transform::make_area(45,40));
-
     auto enemyRenderComp = enemy->addComponent<RenderComponent>("Enemy RenderComponent");
     enemyRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-pink_45x40.png"));
-    enemyRenderComp->setTransformPtr(enemy->getTransform());
-    enemy->setTransform(Transform::make_position(100,100));
+    int screenWidth, screenHeight;
+    SDL_GetWindowSize(GameEngine::instance().getWindow(), &screenWidth, &screenHeight);
+    enemy->transform = Transform::make_position(screenWidth/2,screenHeight/2);
 
+    enemy->addComponent<ScriptComponent>("Enemy Script",
+            [width=(float)screenWidth, height=(float)screenHeight] (float dt, Object* enemy) {
+                static float dirX = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f) > 0.0f ? 1.f : -1.f;
+                static float dirY = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f > 0.0f ? 1.f : -1.f;
 
-    enemy->addComponent<ScriptComponent>("Enemy Script", [enemy](float dt, Object* /*owner*/) {
-        float rand1 = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-        float rand2 = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-        const float speed = 200.f;
-        auto* enemyTransform = enemy->getTransform();
-        enemyTransform->x += (rand1 - 0.5f) * speed * dt;
-        enemyTransform->y += (rand2 - 0.5f) * speed * dt;
-    });
+                constexpr float speed = 100.f;
+                Vec2F& enemyPosition = enemy->transform.position;
+                enemyPosition.x += dirX * speed * dt;
+                enemyPosition.y += dirY * speed * dt;
+                if (enemyPosition.x > width || enemyPosition.x < 0.f)
+                    dirX = -dirX;
+                if (enemyPosition.y > height || enemyPosition.y < 0.f)
+                    dirY = -dirY;
+            });
 }
 
 int main() {
