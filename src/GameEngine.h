@@ -10,7 +10,7 @@ class GameEngine {
 public:
     static GameEngine& instance();
 
-    void engineInit(const char* title, int width, int height);
+    void init(const char* title, int width, int height);
     void render();
     void update(float deltaTime);
     void handleEvents();
@@ -26,6 +26,9 @@ public:
         m_sceneObjects.push_back(std::move(object));
         return ptr;
     }
+
+    SDL_Renderer* getRenderer() const { return m_renderer; }
+    SDL_Window* getWindow() const { return m_window; }
 
 private:
     GameEngine() = default;

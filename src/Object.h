@@ -20,7 +20,7 @@ public:
     Object(Object&&)            = default;
     Object& operator=(Object&&) = default;
 
-    virtual ~Object() = default;
+    ~Object() = default;
 
     template<typename T, typename ... Args>
     T* addComponent(Args&&... args) {
@@ -75,10 +75,13 @@ public:
 
     const std::string& getName()   const { return name; }
     bool isActive()  const { return active; }
-    void  setActive(bool value) { active = value; }
+    void setActive(bool value) { active = value; }
+    const std::string& getTag() const { return tag; }
+    void setTag(const std::string& newTag) { tag = newTag; }
 
-private:
+protected:
     std::string name;
+    std::string tag;
     bool active = true;
     std::vector<std::unique_ptr<Component>> components;
 };

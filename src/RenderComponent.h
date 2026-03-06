@@ -6,10 +6,11 @@
 
 #include "Component.h"
 #include "Texture.h"
+#include "Transform.h"
 
 class RenderComponent : public Component {
 public:
-    RenderComponent() = default;
+    explicit RenderComponent(const std::string& name) : Component(name) { }
 
     void setTexture(Texture* tex) {
         if (!tex) {
@@ -21,15 +22,10 @@ public:
             return;
         }
         texture = tex;
-
-        // Ajusta dst al tamaño natural de la textura por defecto
-        dst.w = static_cast<float>(tex->getWidth());
-        dst.h = static_cast<float>(tex->getHeight());
     }
 
-    void setDestination(float x, float y, float w, float h) {
-        dst = { x, y, w, h };
-    }
+    // Transform no-owning: RenderComponent lee posicion/tamanio de el.
+    void setTransformPtr(const Transform* t) { transform = t; }
 
     void render(SDL_Renderer* renderer) override {
         if (!isEnabled()) return;
@@ -38,16 +34,42 @@ public:
             return;
         }
         if (!texture || !texture->isValid()) {
-            SDL_Log("RenderComponent::render - textura no valida");
+            SDL_Log("RenderComponent::render - textura invalida");
+            return;
+        }
+        if (!transform) {
+            SDL_Log("RenderComponent::render - sin Transform, nada que renderizar");
             return;
         }
 
-        SDL_RenderTexture(renderer, texture->get(), nullptr, &dst);
+        // Tama\u00f1o base: textura natural o lo que defina Transform
+        float w = texture->getWidth();
+        float h = texture->getHeight();
+        float x = 0.0f;
+        float y = 0.0f;
+
+        if (transform) {
+            x = transform->x;
+            y = transform->y;
+            if (transform->width  > 0.0f) w = transform->width;
+            if (transform->height > 0.0f) h = transform->height;
+            w *= transform->scaleX;
+            h *= transform->scaleY;
+        }
+
+        SDL_FRect dst { x, y, w, h };
+
+        if (transform && transform->rotation != 0.0f) {
+            SDL_RenderTextureRotated(renderer, texture->get(), nullptr, &dst,
+                                     transform->rotation, nullptr, SDL_FLIP_NONE);
+        } else {
+            SDL_RenderTexture(renderer, texture->get(), nullptr, &dst);
+        }
     }
 
 private:
-    Texture* texture = nullptr;  // no owning, solo referencia
-    SDL_FRect dst = {};
+    Texture*    texture{};    // no-owning
+    const Transform*  transform{};  // no-owning
 };
 
 #endif //LETSLEARNSDL_RENDERCOMPONENT_H

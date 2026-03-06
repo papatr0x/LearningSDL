@@ -8,7 +8,7 @@ struct SDL_Renderer;
 
 class Component {
 public:
-    Component(std::string name) : name(std::move(name)) { }
+    explicit Component(std::string name) : name(std::move(name)) { }
     virtual ~Component() = default;
 
     // No copy nor move. Components belong to a single GameObject

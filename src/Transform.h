@@ -4,9 +4,15 @@
 #define LETSLEARNSDL_TRANSFORM_H
 
 struct Transform {
+    static Transform make_position(float x, float y) {
+        return Transform{x, y};
+    }
+    static Transform make_area(float width, float height) {
+        return Transform{0, 0, width, height};
+    }
     float x{}, y{};
     float width{}, height{};
-    float x_scale{}, y_scale{};
+    float scaleX{1.0f}, scaleY{1.0f};
     float rotation{};
 };
 

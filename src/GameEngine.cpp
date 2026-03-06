@@ -2,7 +2,6 @@
 
 #include "GameEngine.h"
 #include "TextureManager.h"
-#include "Enemy.h"
 #include <iostream>
 #include <memory>
 #include <algorithm>
@@ -12,7 +11,7 @@ GameEngine& GameEngine::instance() {
     return instance;
 }
 
-void GameEngine::engineInit(const char* title, int width, int height) {
+void GameEngine::init(const char* title, int width, int height) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << "\n";
         return;
@@ -29,16 +28,9 @@ void GameEngine::engineInit(const char* title, int width, int height) {
     SDL_SetRenderVSync(m_renderer, 1);
 
     SDL_SetRenderDrawColor(m_renderer, 0x1a, 0x2a, 0x3a, 0xff);
-
+    srand(static_cast<unsigned>(time(0)));
     std::clog << "SDL Init succeeded\n";
     m_running = true;
-
-    // Game init
-    // TextureManager::instance().load("assets/fish-45x40.png", "fish", m_renderer);
-    // std::shared_ptr<SceneGameObject> tempGameObject = std::make_shared<Enemy>();
-    // // tempGameObject->load(0, 0, 60, 60, "fish");
-    // m_sceneObjects.push_back(std::move(tempGameObject));
-
 }
 
 void GameEngine::render() {
