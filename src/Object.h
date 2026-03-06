@@ -60,25 +60,6 @@ public:
         return nullptr;
     }
 
-    void update(float dt) {
-        if (!active) return;
-        for (auto& c : components) {
-            if (c->isEnabled())
-                c->update(dt);
-        }
-    }
-
-    void render(SDL_Renderer* renderer) {
-        if (!active) return;
-        if (!renderer) {
-            throw std::runtime_error("Object::render - renderer is nullptr");
-        }
-        for (auto& c : components) {
-            if (c->isEnabled())
-                c->render(renderer);
-        }
-    }
-
     const std::string& getName()   const { return name; }
     bool isActive()  const { return active; }
     void setActive(bool value) { active = value; }

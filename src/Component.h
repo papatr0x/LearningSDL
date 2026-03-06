@@ -5,19 +5,20 @@
 #include <string>
 
 struct SDL_Renderer;
+class Object;
 
 class Component {
 public:
     explicit Component(std::string name) : name(std::move(name)) { }
     virtual ~Component() = default;
 
-    // No copy nor move. Components belong to a single GameObject
+    // Not copyable or movable — components belong to a single Object.
     Component(const Component&)            = delete;
     Component& operator=(const Component&) = delete;
     Component(Component&&)                 = delete;
     Component& operator=(Component&&)      = delete;
 
-    virtual void update(float dt) noexcept {}
+    virtual void update(float dt, Object* owner) noexcept {}
     virtual void render(SDL_Renderer* renderer) noexcept {}
 
     bool isEnabled() const { return enabled; }

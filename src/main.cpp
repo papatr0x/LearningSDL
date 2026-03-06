@@ -21,16 +21,16 @@ void initGame() {
     playerRenderComp->setTransformPtr(player->getTransform());
 
     float angle = 0.0f;
-    player->addComponent<ScriptComponent>("Player Script", [angle, player](float dt) mutable {
+    player->addComponent<ScriptComponent>("Player Script", [angle, player](float dt, Object* /*owner*/) mutable {
         int w, h;
         SDL_GetWindowSize(GameEngine::instance().getWindow(), &w, &h);
-        const float centerX = w * 0.5f;
-        const float centerY = h * 0.5f;
+        const float centerX = static_cast<float>(w) * 0.5f;
+        const float centerY = static_cast<float>(h) * 0.5f;
         const float radius  = 100.0f;
         const float speed   = 1.0f;
         angle += speed * dt;
-        player->setTransform(Transform::make_position(centerX + radius * std::cos(angle), centerY
-            + radius * std::sin(angle)));
+        player->setTransform(Transform::make_position(centerX + radius * std::cos(angle),
+                                                      centerY + radius * std::sin(angle)));
     });
 
     // --- Enemy ---
@@ -44,14 +44,14 @@ void initGame() {
     enemy->setTransform(Transform::make_position(100,100));
 
 
-    enemy->addComponent<ScriptComponent>("Enemy Script", [enemy](float dt) {
+    enemy->addComponent<ScriptComponent>("Enemy Script", [enemy](float dt, Object* /*owner*/) {
         float rand1 = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
         float rand2 = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
         const float speed = 200.f;
-        auto enemyTransform = enemy->getTransform();
-        enemyTransform->x += (rand1-0.5f) * speed * dt;
-        enemyTransform->y += (rand2-0.5f) * speed * dt;
+        auto* enemyTransform = enemy->getTransform();
+        enemyTransform->x += (rand1 - 0.5f) * speed * dt;
+        enemyTransform->y += (rand2 - 0.5f) * speed * dt;
     });
 }
 

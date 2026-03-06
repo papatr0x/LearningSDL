@@ -24,7 +24,7 @@ public:
         texture = tex;
     }
 
-    // Non-owning Transform: RenderComponent reads position and size from it.
+    // Non-owning Transform: RenderComponent reads the position and size from it.
     void setTransformPtr(const Transform* t) { transform = t; }
 
     void render(SDL_Renderer* renderer) noexcept override {

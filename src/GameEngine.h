@@ -47,7 +47,7 @@ private:
     struct ComponentEntry { Object* owner; Component* component; };
 
     std::vector<std::unique_ptr<Object>> m_sceneObjects;
-    std::vector<ComponentEntry>          m_componentPool;
+    std::vector<ComponentEntry> m_componentPool;
 };
 
 
