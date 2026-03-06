@@ -24,9 +24,9 @@ public:
         auto object = std::make_unique<T>(std::forward<Args>(args)...);
         T* ptr = object.get();
 
-        // Cada componente que se añada al objeto se registra en el pool plano.
-        ptr->onComponentAdded = [this, ptr](Component* c) {
-            m_componentPool.push_back({ptr, c});
+        // Every component added to this object is registered in the flat pool.
+        ptr->onComponentAdded = [this, owner = ptr](Component* c) {
+            m_componentPool.push_back({owner, c});
         };
 
         m_sceneObjects.push_back(std::move(object));

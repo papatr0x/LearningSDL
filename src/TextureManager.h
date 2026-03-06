@@ -9,7 +9,7 @@
 
 class TextureManager {
 public:
-    // No copyable ni movible - es único dueño de las texturas
+    // Not copyable or movable - sole owner of all textures
     TextureManager(const TextureManager&)            = delete;
     TextureManager& operator=(const TextureManager&) = delete;
     TextureManager(TextureManager&&)                 = delete;
@@ -42,7 +42,7 @@ public:
     void unload(const std::string& path) {
         auto it = textures.find(path);
         if (it == textures.end()) {
-            SDL_Log("TextureManager::unload - '%s' no existe en cache", path.c_str());
+            SDL_Log("TextureManager::unload - '%s' not found in cache", path.c_str());
             return;
         }
         textures.erase(it);

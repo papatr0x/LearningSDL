@@ -14,35 +14,35 @@ public:
 
     void setTexture(Texture* tex) {
         if (!tex) {
-            SDL_Log("RenderComponent::setTexture - texture es nullptr");
+            SDL_Log("RenderComponent::setTexture - texture is nullptr");
             return;
         }
         if (!tex->isValid()) {
-            SDL_Log("RenderComponent::setTexture - texture no es valida");
+            SDL_Log("RenderComponent::setTexture - texture is not valid");
             return;
         }
         texture = tex;
     }
 
-    // Transform no-owning: RenderComponent lee posicion/tamanio de el.
+    // Non-owning Transform: RenderComponent reads position and size from it.
     void setTransformPtr(const Transform* t) { transform = t; }
 
     void render(SDL_Renderer* renderer) noexcept override {
         if (!isEnabled()) return;
         if (!renderer) {
-            SDL_Log("RenderComponent::render - renderer es nullptr");
+            SDL_Log("RenderComponent::render - renderer is nullptr");
             return;
         }
         if (!texture || !texture->isValid()) {
-            SDL_Log("RenderComponent::render - textura invalida");
+            SDL_Log("RenderComponent::render - invalid texture");
             return;
         }
         if (!transform) {
-            SDL_Log("RenderComponent::render - sin Transform, nada que renderizar");
+            SDL_Log("RenderComponent::render - no Transform set, nothing to render");
             return;
         }
 
-        // Tama\u00f1o base: textura natural o lo que defina Transform
+        // Base size: natural texture size, overridden by Transform if set
         float w = texture->getWidth();
         float h = texture->getHeight();
         float x = 0.0f;

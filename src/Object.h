@@ -13,17 +13,17 @@ class Object {
 public:
     explicit Object(std::string name) : name(std::move(name)) { }
 
-    // No copyable
+    // Not copyable
     Object(const Object&)            = delete;
     Object& operator=(const Object&) = delete;
 
-    // Movible
+    // Movable
     Object(Object&&)            = default;
     Object& operator=(Object&&) = default;
 
     ~Object() = default;
 
-    // El engine asigna este callback para registrar componentes en su pool plano.
+    // Set by the engine to register components in its flat pool.
     std::function<void(Component*)> onComponentAdded;
 
     template<typename T, typename ... Args>

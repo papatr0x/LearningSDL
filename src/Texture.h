@@ -13,7 +13,7 @@ public:
     Texture(const Texture&)            = delete;
     Texture& operator=(const Texture&) = delete;
 
-    // Movible
+    // Movable
     Texture(Texture&& other) noexcept
         : sdlTexture(other.sdlTexture)
         , width(other.width)
