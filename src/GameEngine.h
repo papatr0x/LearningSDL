@@ -23,6 +23,12 @@ public:
 
         auto object = std::make_unique<T>(std::forward<Args>(args)...);
         T* ptr = object.get();
+
+        // Cada componente que se añada al objeto se registra en el pool plano.
+        ptr->onComponentAdded = [this, ptr](Component* c) {
+            m_componentPool.push_back({ptr, c});
+        };
+
         m_sceneObjects.push_back(std::move(object));
         return ptr;
     }
@@ -38,7 +44,10 @@ private:
     SDL_Renderer* m_renderer{};
     bool m_running{false};
 
+    struct ComponentEntry { Object* owner; Component* component; };
+
     std::vector<std::unique_ptr<Object>> m_sceneObjects;
+    std::vector<ComponentEntry>          m_componentPool;
 };
 
 

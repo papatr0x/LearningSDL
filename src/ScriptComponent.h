@@ -19,7 +19,7 @@ public:
         }
     }
 
-    void update(float dt) override {
+    void update(float dt) noexcept override {
         if (!isEnabled()) return;
         if (!updateFn)    return;
         updateFn(dt);

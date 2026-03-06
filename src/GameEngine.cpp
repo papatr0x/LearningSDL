@@ -31,19 +31,22 @@ void GameEngine::init(const char* title, int width, int height) {
     srand(static_cast<unsigned>(time(0)));
     std::clog << "SDL Init succeeded\n";
     m_running = true;
+    m_componentPool.reserve(256);
 }
 
 void GameEngine::render() {
     SDL_RenderClear(m_renderer);
-    for (auto& go : m_sceneObjects) {
-        go->render(m_renderer);
+    for (auto& [owner, comp] : m_componentPool) {
+        if (owner->isActive() && comp->isEnabled())
+            comp->render(m_renderer);
     }
     SDL_RenderPresent(m_renderer);
 }
 
 void GameEngine::update(float deltaTime) {
-    for (auto& go : m_sceneObjects) {
-        go->update(deltaTime);
+    for (auto& [owner, comp] : m_componentPool) {
+        if (owner->isActive() && comp->isEnabled())
+            comp->update(deltaTime);
     }
 }
 

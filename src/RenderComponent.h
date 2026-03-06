@@ -27,7 +27,7 @@ public:
     // Transform no-owning: RenderComponent lee posicion/tamanio de el.
     void setTransformPtr(const Transform* t) { transform = t; }
 
-    void render(SDL_Renderer* renderer) override {
+    void render(SDL_Renderer* renderer) noexcept override {
         if (!isEnabled()) return;
         if (!renderer) {
             SDL_Log("RenderComponent::render - renderer es nullptr");

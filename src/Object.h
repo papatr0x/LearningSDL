@@ -5,6 +5,7 @@
 #include "Component.h"
 #include <vector>
 #include <memory>
+#include <functional>
 
 class Component;
 
@@ -22,6 +23,9 @@ public:
 
     ~Object() = default;
 
+    // El engine asigna este callback para registrar componentes en su pool plano.
+    std::function<void(Component*)> onComponentAdded;
+
     template<typename T, typename ... Args>
     T* addComponent(Args&&... args) {
         static_assert(std::is_base_of_v<Component, T>, "T MUST derive of Component");
@@ -29,6 +33,8 @@ public:
         auto component = std::make_unique<T>(std::forward<Args>(args)...);
         T* ptr = component.get();
         components.push_back(std::move(component));
+        if (onComponentAdded)
+            onComponentAdded(ptr);
         return ptr;
     }
 

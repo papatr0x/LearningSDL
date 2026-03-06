@@ -17,8 +17,8 @@ public:
     Component(Component&&)                 = delete;
     Component& operator=(Component&&)      = delete;
 
-    virtual void update(float dt) {}
-    virtual void render(SDL_Renderer* renderer) {}
+    virtual void update(float dt) noexcept {}
+    virtual void render(SDL_Renderer* renderer) noexcept {}
 
     bool isEnabled() const { return enabled; }
     void setEnabled(bool value) { enabled = value; }
