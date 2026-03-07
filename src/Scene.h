@@ -86,9 +86,9 @@ public:
         return ptr;
     }
 
-    Object* findObject(const std::string& name) {
+    Object* findObject(std::string_view name) {
         const auto it = std::find_if(objects.begin(), objects.end(),
-            [&name](const std::unique_ptr<Object>& go) {
+            [name](const std::unique_ptr<Object>& go) {
                 return go->getName() == name;
             });
         return it != objects.end() ? it->get() : nullptr;

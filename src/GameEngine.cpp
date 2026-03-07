@@ -29,7 +29,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     SDL_SetRenderVSync(renderer, 1);
 
     SDL_SetRenderDrawColor(renderer, 0x1a, 0x2a, 0x3a, 0xff);
-    srand(static_cast<unsigned>(time(0)));
+    srand(static_cast<unsigned>(time(nullptr)));
     running = true;
 
     std::clog << "SDL Init succeeded\n";

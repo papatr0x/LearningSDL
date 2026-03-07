@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <string_view>
 
 class Object {
 public:
@@ -50,7 +51,7 @@ public:
     }
 
     template<typename T>
-    T* getComponent(const std::string& componentName) {
+    T* getComponent(std::string_view componentName) {
         static_assert(std::is_base_of_v<Component, T>, "T MUST derive of Component");
 
         for (auto& c : components) {

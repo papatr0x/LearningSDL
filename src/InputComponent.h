@@ -21,8 +21,8 @@ public:
     bool isMouseButtonPressed(const Uint8 button)  const { return input.isMouseButtonPressed(button); }
     bool isMouseButtonReleased(const Uint8 button) const { return input.isMouseButtonReleased(button); }
 
-    const Vector2<float>& getMousePosition() const { return input.getMousePosition(); }
-    const Vector2<float>& getMouseDelta()    const { return input.getMouseDelta(); }
+    const Vec2F& getMousePosition() const { return input.getMousePosition(); }
+    const Vec2F& getMouseDelta()    const { return input.getMouseDelta(); }
 
 private:
     Input& input;  // non-owning reference, Input lives in Game

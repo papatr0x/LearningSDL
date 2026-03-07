@@ -31,7 +31,7 @@ public:
         }
 
         SDL_FRect dst { owner->transform.position.x, owner->transform.position.y,
-            (float)texture->getWidth(), (float)texture->getHeight() };
+            static_cast<float>(texture->getWidth()), static_cast<float>(texture->getHeight()) };
 
         if (owner->transform.rotation != 0.0f) {
             SDL_RenderTextureRotated(

@@ -54,7 +54,7 @@ public:
         enemy->transform = Transform::make_position(screenWidth/2,screenHeight/2);
 
         enemy->addComponent<ScriptComponent>("Enemy Script",
-            [width=(float)screenWidth, height=(float)screenHeight,
+            [width=static_cast<float>(screenWidth), height=static_cast<float>(screenHeight),
              dirX = (rand() > RAND_MAX/2) ? 1.f : -1.f,
              dirY = (rand() > RAND_MAX/2) ? 1.f : -1.f]
             (float dt, Object* enemy) mutable {

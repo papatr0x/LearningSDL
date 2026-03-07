@@ -6,7 +6,7 @@
 
 struct Transform {
     static Transform make_position(const float x, const float y) {
-        return Transform{Vec2F(x, y)};
+        return Transform{Vec2F{x, y}};
     }
     // 'Scale' is commented out until it is enabled in engine.
     // static Transform make_area(const float width, const float height) {
