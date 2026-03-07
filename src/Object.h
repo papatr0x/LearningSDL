@@ -24,8 +24,7 @@ public:
 
     virtual ~Object() = default;
 
-    // Set by the engine to register components in its flat pool.
-    std::function<void(Component*)> onComponentAdded;
+    friend class Scene;
 
     template<typename T, typename ... Args>
     T* addComponent(Args&&... args) {
@@ -77,6 +76,9 @@ public:
     }
 
     Transform transform;
+
+private:
+    std::function<void(Component*)> onComponentAdded;
 
 protected:
     std::string name;
