@@ -53,18 +53,17 @@ public:
         enemyRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-pink_45x40.png"));
         enemy->transform = Transform::make_position(screenWidth/2,screenHeight/2);
 
-        enemy->addComponent<ScriptComponent>("Enemy Script", [width=(float)screenWidth, height=(float)screenHeight] (float dt, Object* enemy) {
-                static float dirX = (static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f) > 0.0f ? 1.f : -1.f;
-                static float dirY = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) - 0.5f > 0.0f ? 1.f : -1.f;
-
+        enemy->addComponent<ScriptComponent>("Enemy Script",
+            [width=(float)screenWidth, height=(float)screenHeight,
+             dirX = (rand() > RAND_MAX/2) ? 1.f : -1.f,
+             dirY = (rand() > RAND_MAX/2) ? 1.f : -1.f]
+            (float dt, Object* enemy) mutable {
                 constexpr float speed = 100.f;
-                Vec2F& enemyPosition = enemy->transform.position;
-                enemyPosition.x += dirX * speed * dt;
-                enemyPosition.y += dirY * speed * dt;
-                if (enemyPosition.x > width || enemyPosition.x < 0.f)
-                    dirX = -dirX;
-                if (enemyPosition.y > height || enemyPosition.y < 0.f)
-                    dirY = -dirY;
+                Vec2F& pos = enemy->transform.position;
+                pos.x += dirX * speed * dt;
+                pos.y += dirY * speed * dt;
+                if (pos.x > width || pos.x < 0.f)  dirX = -dirX;
+                if (pos.y > height || pos.y < 0.f) dirY = -dirY;
         });
     }
 };
