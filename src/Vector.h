@@ -26,15 +26,15 @@ struct Vector3{
     T x{}, y{}, z{};
     static Vector3<T> zero() { return Vector3<T>{};}
 
-    Vector3 operator+(const Vector3& other) const { return { x + other.x, y + other.y }; }
-    Vector3 operator-(const Vector3& other) const { return { x - other.x, y - other.y }; }
-    Vector3 operator*(T scalar)             const { return { x * scalar,  y * scalar  }; }
+    Vector3 operator+(const Vector3& other) const { return { x + other.x, y + other.y, z + other.z }; }
+    Vector3 operator-(const Vector3& other) const { return { x - other.x, y - other.y, z - other.z }; }
+    Vector3 operator*(T scalar)             const { return { x * scalar,  y * scalar,  z * scalar }; }
 
-    Vector3& operator+=(const Vector3& other) { x += other.x; y += other.y; return *this; }
-    Vector3& operator-=(const Vector3& other) { x -= other.x; y -= other.y; return *this; }
-    Vector3& operator*=(T scalar)             { x *= scalar;  y *= scalar;  return *this; }
+    Vector3& operator+=(const Vector3& other) { x += other.x; y += other.y; z += other.z; return *this; }
+    Vector3& operator-=(const Vector3& other) { x -= other.x; y -= other.y; z -= other.z; return *this; }
+    Vector3& operator*=(T scalar)             { x *= scalar;  y *= scalar;  z *= scalar; return *this; }
 
-    bool operator==(const Vector3& other) const { return x == other.x && y == other.y; }
+    bool operator==(const Vector3& other) const { return x == other.x && y == other.y && z == other.z; }
     bool operator!=(const Vector3& other) const { return !(*this == other); }
 };
 
