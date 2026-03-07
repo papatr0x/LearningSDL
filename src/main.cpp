@@ -2,10 +2,14 @@
 
 #include "GameEngine.h"
 #include "MyScene.h"
+#include <iostream>
 
 int main() {
     GameEngine& engine = GameEngine::instance();
-    engine.init("SDL Game", 800, 600);
+    if (!engine.init("SDL Game", 800, 600)) {
+        std::cerr << "Cannot initialize tge game.\n";
+        return EXIT_FAILURE;
+    }
     engine.loadScene<MyScene>();
     engine.run();
     engine.shutdown();

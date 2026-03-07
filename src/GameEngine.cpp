@@ -46,7 +46,7 @@ void GameEngine::handleEvents() {
     }
 }
 
-void GameEngine::shutdown() const {
+void GameEngine::shutdown() {
     std::clog << "shutting down game\n";
     if (activeScene) activeScene->unload();
     if (window) SDL_DestroyWindow(window);

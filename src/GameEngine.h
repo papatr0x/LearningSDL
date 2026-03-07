@@ -17,7 +17,7 @@ public:
 
     bool init(const char* title, int width, int height);
     void handleEvents();
-    void shutdown() const;
+    void shutdown();
     void run();
 
     template<typename T, typename... Args>

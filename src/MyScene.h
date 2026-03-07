@@ -27,7 +27,7 @@ public:
         auto playerRenderComp = player->addComponent<RenderComponent>("Player RenderComponent");
         playerRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-gold_112x112.png"));
 
-        player->addComponent<ScriptComponent>("Player Script", [](float dt, Object* owner) mutable {
+        player->addComponent<ScriptComponent>("Player Script", [](float dt, Object* owner) {
             auto* inputCompo = owner->getComponent<InputComponent>();
             if (!inputCompo) {
                 SDL_Log("ScriptComponent::lambdaScript - InputComponent is null");

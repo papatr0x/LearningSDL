@@ -56,7 +56,7 @@ public:
 
         for (auto& c : components) {
             if (c->getName() == componentName)
-                return static_cast<T*>(c.get());
+                return dynamic_cast<T*>(c.get());
         }
         return nullptr;
     }
