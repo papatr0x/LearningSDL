@@ -98,8 +98,13 @@ private:
     void flushDestroyQueue() {
         componentPool.erase(
             std::remove_if(componentPool.begin(), componentPool.end(),
-                [](const ComponentEntry& e) { return e.owner->isPendingDestroy(); }),
+                [](const ComponentEntry& e) {
+                    return e.owner->isPendingDestroy() || e.component->isPendingDestroy();
+                }),
             componentPool.end());
+
+        for (auto& object : objects)
+            object->flushDestroyedComponents();
 
         objects.erase(
             std::remove_if(objects.begin(), objects.end(),

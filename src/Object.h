@@ -68,6 +68,13 @@ public:
     bool isPendingDestroy() const { return pendingDestroy; }
     void destroy() { pendingDestroy = true; }
 
+    void flushDestroyedComponents() {
+        components.erase(
+            std::remove_if(components.begin(), components.end(),
+                [](const std::unique_ptr<Component>& c) { return c->isPendingDestroy(); }),
+            components.end());
+    }
+
     Transform transform;
 
 protected:

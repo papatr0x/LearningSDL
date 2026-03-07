@@ -28,11 +28,14 @@ public:
     const std::string& getName() const { return name; }
     void setUpdateInterval(float seconds) { intervalSeconds = seconds; }
     float getUpdateInterval() const { return intervalSeconds; }
+    bool isPendingDestroy() const { return pendingDestroy; }
+    void destroy() { pendingDestroy = true; }
 
 protected:
     std::string name;
     bool enabled = true;
     float intervalSeconds = 0.0f;
+    bool pendingDestroy = false;
     Object* owner{};
 };
 
