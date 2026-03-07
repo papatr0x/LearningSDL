@@ -16,38 +16,22 @@ void GameEngine::init(const char* title, int width, int height) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << "\n";
         return;
     }
-    m_window = SDL_CreateWindow(title,width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_METAL);
-    if (!m_window) {
+    window = SDL_CreateWindow(title,width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_METAL);
+    if (!window) {
         std::cerr << "SDL could create window. Error: " << SDL_GetError() << "\n";
         return;
     }
-    m_renderer = SDL_CreateRenderer(m_window, nullptr);
-    if (!m_renderer) {
+    renderer = SDL_CreateRenderer(window, nullptr);
+    if (!renderer) {
         std::cerr << "SDL could not create renderer. Error: " << SDL_GetError() << "\n";
     }
-    SDL_SetRenderVSync(m_renderer, 1);
+    SDL_SetRenderVSync(renderer, 1);
 
-    SDL_SetRenderDrawColor(m_renderer, 0x1a, 0x2a, 0x3a, 0xff);
+    SDL_SetRenderDrawColor(renderer, 0x1a, 0x2a, 0x3a, 0xff);
     srand(static_cast<unsigned>(time(0)));
+    running = true;
+
     std::clog << "SDL Init succeeded\n";
-    m_running = true;
-    m_componentPool.reserve(256);
-}
-
-void GameEngine::render() {
-    SDL_RenderClear(m_renderer);
-    for (auto& [owner, comp] : m_componentPool) {
-        if (owner->isActive() && comp->isEnabled())
-            comp->render(m_renderer);
-    }
-    SDL_RenderPresent(m_renderer);
-}
-
-void GameEngine::update(float deltaTime) {
-    for (auto& [owner, comp] : m_componentPool) {
-        if (owner->isActive() && comp->isEnabled())
-            comp->update(deltaTime);
-    }
 }
 
 void GameEngine::handleEvents() {
@@ -55,14 +39,41 @@ void GameEngine::handleEvents() {
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_EVENT_QUIT) m_running = false;
+        if (event.type == SDL_EVENT_QUIT) running = false;
         input.processEvent(event);
     }
 }
 
 void GameEngine::shutdown() const {
     std::clog << "shutting down game\n";
-    SDL_DestroyWindow(m_window);
-    SDL_DestroyRenderer(m_renderer);
+    if (activeScene) activeScene->unload();
+    if (window) SDL_DestroyWindow(window);
+    if (renderer) SDL_DestroyRenderer(renderer);
     SDL_Quit();
+}
+
+void GameEngine::run() {
+    uint64_t lastTime = SDL_GetTicks();
+    while (running) {
+        // Generate deltatime
+        const uint64_t currentTime = SDL_GetTicks();
+        const float deltaTime = static_cast<float>(currentTime - lastTime) / 1000.0f;
+        lastTime = currentTime;
+
+        // Check inputs
+        handleEvents();
+
+        // Handle scene transitions
+        if (pendingScene) {
+            if (activeScene)
+                activeScene->unload();
+            activeScene = std::move(pendingScene);
+            activeScene->load();
+        }
+        if (!activeScene) continue;
+
+        // Update and render the current scene
+        activeScene->update(deltaTime);
+        activeScene->render(renderer);
+    }
 }
