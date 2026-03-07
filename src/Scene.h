@@ -5,6 +5,7 @@
 #include "Object.h"
 #include <memory>
 #include <vector>
+#include <algorithm>
 #include "SDL3/SDL_render.h"
 
 class Scene {
@@ -36,6 +37,7 @@ public:
             if (owner->isActive() && comp->isEnabled())
                 comp->update(deltaTime);
         }
+        flushDestroyQueue();
     }
 
     template<typename T, typename ... Args>
@@ -63,6 +65,18 @@ public:
     }
 
 private:
+    void flushDestroyQueue() {
+        componentPool.erase(
+            std::remove_if(componentPool.begin(), componentPool.end(),
+                [](const ComponentEntry& e) { return e.owner->isPendingDestroy(); }),
+            componentPool.end());
+
+        objects.erase(
+            std::remove_if(objects.begin(), objects.end(),
+                [](const std::unique_ptr<Object>& o) { return o->isPendingDestroy(); }),
+            objects.end());
+    }
+
     struct ComponentEntry { Object* owner; Component* component; };
     std::vector<ComponentEntry> componentPool;
     std::vector<std::unique_ptr<Object>> objects;

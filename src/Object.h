@@ -61,11 +61,13 @@ public:
         return nullptr;
     }
 
-    const std::string& getName()   const { return name; }
-    bool isActive()  const { return active; }
+    const std::string& getName() const { return name; }
+    bool isActive() const { return active; }
     void setActive(bool value) { active = value; }
     const std::string& getTag() const { return tag; }
     void setTag(const std::string& newTag) { tag = newTag; }
+    bool isPendingDestroy() const { return pendingDestroy; }
+    void destroy() { pendingDestroy = true; }
 
     Transform transform;
 
@@ -73,6 +75,7 @@ protected:
     std::string name;
     std::string tag;
     bool active = true;
+    bool pendingDestroy = false;
     std::vector<std::unique_ptr<Component>> components;
 };
 
