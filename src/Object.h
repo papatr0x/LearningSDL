@@ -10,6 +10,7 @@
 
 class Object {
 public:
+    // By definition, no component is added on Object ctor or its derived classes.
     explicit Object(std::string name) : name(std::move(name)) { }
 
     // Not copyable
@@ -20,7 +21,7 @@ public:
     Object(Object&&)            = default;
     Object& operator=(Object&&) = default;
 
-    ~Object() = default;
+    virtual ~Object() = default;
 
     // Set by the engine to register components in its flat pool.
     std::function<void(Component*)> onComponentAdded;
