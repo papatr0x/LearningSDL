@@ -32,10 +32,18 @@ public:
 
     void render(SDL_Renderer* renderer) {
         SDL_RenderClear(renderer);
+
+        std::vector<Component*> renderables;
         for (auto& entry : componentPool) {
             if (entry.owner->isActive() && entry.component->isEnabled())
-                entry.component->render(renderer);
+                renderables.push_back(entry.component);
         }
+        std::sort(renderables.begin(), renderables.end(), [](const Component* a, const Component* b) {
+            return a->getRenderLayer() < b->getRenderLayer();
+        });
+        for (auto* component : renderables)
+            component->render(renderer);
+
         SDL_RenderPresent(renderer);
     }
 

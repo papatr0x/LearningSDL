@@ -30,12 +30,15 @@ public:
     float getUpdateInterval() const { return intervalSeconds; }
     bool isPendingDestroy() const { return pendingDestroy; }
     void destroy() { pendingDestroy = true; }
+    int getRenderLayer() const { return renderLayer; }
+    void setRenderLayer(const int order) { renderLayer = order; }
 
 protected:
     std::string name;
     bool enabled{true};
     float intervalSeconds{0.0f};
     bool pendingDestroy{false};
+    int renderLayer{0};
     Object* owner{};
 };
 
