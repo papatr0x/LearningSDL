@@ -68,17 +68,17 @@ public:
     bool isPendingDestroy() const { return pendingDestroy; }
     void destroy() { pendingDestroy = true; }
 
+    Transform transform;
+
+private:
+    std::function<void(Component*)> onComponentAdded;
+
     void flushDestroyedComponents() {
         components.erase(
             std::remove_if(components.begin(), components.end(),
                 [](const std::unique_ptr<Component>& c) { return c->isPendingDestroy(); }),
             components.end());
     }
-
-    Transform transform;
-
-private:
-    std::function<void(Component*)> onComponentAdded;
 
 protected:
     std::string name;

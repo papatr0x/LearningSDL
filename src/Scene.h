@@ -30,10 +30,10 @@ public:
             entry.component->onStart();
     }
 
-    void render(SDL_Renderer* renderer) const {
+    void render(SDL_Renderer* renderer) {
         SDL_RenderClear(renderer);
 
-        std::vector<Component*> renderables;
+        renderables.clear();
         for (auto& entry : componentPool) {
             if (entry.owner->isActive() && entry.component->isEnabled())
                 renderables.push_back(entry.component);
@@ -128,5 +128,6 @@ private:
     struct ComponentEntry { Object* owner; Component* component; float intervalAccumulator{0.0f}; };
     std::vector<ComponentEntry> componentPool;
     std::vector<std::unique_ptr<Object>> objects;
+    std::vector<Component*> renderables;
 };
 #endif //LETSLEARNSDL_SCENE_H

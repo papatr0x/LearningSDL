@@ -43,9 +43,14 @@ public:
             w, h
         };
 
-        const SDL_FPoint center { pivot.x * w, pivot.y * h };
-        SDL_RenderTextureRotated(renderer, texture->get(), nullptr, &dst,
-            owner->transform.rotation, &center, SDL_FLIP_NONE);
+        if (owner->transform.rotation != 0.0f ) {
+            const SDL_FPoint center { pivot.x * w, pivot.y * h };
+            SDL_RenderTextureRotated(renderer, texture->get(), nullptr, &dst,
+                owner->transform.rotation, &center, SDL_FLIP_NONE);
+        }
+        else {
+            SDL_RenderTexture(renderer, texture->get(), nullptr, &dst);
+        }
     }
 
 private:
