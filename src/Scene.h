@@ -114,14 +114,14 @@ private:
 
     // This flag allows the onStart method to be called after the component is registered, even if it is
     // created outside of the load() method.
-    bool started = false;
+    bool started{false};
 
     // These are used to calculate when to call the fixed step update (to be used for physics).
-    float physicsAccumulator = 0.0f;
-    static constexpr float fixedPhysicsStep = 1.0f / 60.0f;
+    float physicsAccumulator{0.0f};
+    static constexpr float fixedPhysicsStep{1.0f / 60.0f};
 
     // These holds Objects in Scene while providing better locality.
-    struct ComponentEntry { Object* owner; Component* component; float intervalAccumulator = 0.0f; };
+    struct ComponentEntry { Object* owner; Component* component; float intervalAccumulator{0.0f}; };
     std::vector<ComponentEntry> componentPool;
     std::vector<std::unique_ptr<Object>> objects;
 };

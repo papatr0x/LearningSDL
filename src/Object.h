@@ -80,8 +80,8 @@ public:
 protected:
     std::string name;
     std::string tag;
-    bool active = true;
-    bool pendingDestroy = false;
+    bool active{true};
+    bool pendingDestroy{false};
     std::vector<std::unique_ptr<Component>> components;
 };
 

@@ -60,7 +60,7 @@ void GameEngine::run() {
     while (running) {
         // Generate deltatime
         const uint64_t currentTime = SDL_GetTicks();
-        constexpr float maxDeltaTime = 0.05f;
+        constexpr float maxDeltaTime{0.05f};
         const float deltaTime = std::min(static_cast<float>(currentTime - lastTime) / 1000.0f, maxDeltaTime);
         lastTime = currentTime;
 

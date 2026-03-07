@@ -33,9 +33,9 @@ public:
 
 protected:
     std::string name;
-    bool enabled = true;
-    float intervalSeconds = 0.0f;
-    bool pendingDestroy = false;
+    bool enabled{true};
+    float intervalSeconds{0.0f};
+    bool pendingDestroy{false};
     Object* owner{};
 };
 
