@@ -8,11 +8,12 @@ struct Transform {
     static Transform make_position(const float x, const float y) {
         return Transform{Vec2F(x, y)};
     }
-    static Transform make_area(const float width, const float height) {
-        return Transform{0, 0, width, height};
-    }
+    // 'Scale' is commented out until it is enabled in engine.
+    // static Transform make_area(const float width, const float height) {
+    //     return Transform{0, 0, width, height};
+    // }
     Vec2F position{};
-    Vec2F scale{};
+    // Vec2F scale{};
     float rotation{};
 };
 

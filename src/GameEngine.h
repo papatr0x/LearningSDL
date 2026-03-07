@@ -15,7 +15,7 @@ public:
 
     static GameEngine& instance();
 
-    void init(const char* title, int width, int height);
+    bool init(const char* title, int width, int height);
     void handleEvents();
     void shutdown() const;
     void run();

@@ -11,19 +11,20 @@ GameEngine& GameEngine::instance() {
     return instance;
 }
 
-void GameEngine::init(const char* title, int width, int height) {
+bool GameEngine::init(const char* title, int width, int height) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << "\n";
-        return;
+        return false;
     }
-    window = SDL_CreateWindow(title,width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_METAL);
+    window = SDL_CreateWindow(title,width, height, SDL_WINDOW_RESIZABLE);
     if (!window) {
         std::cerr << "SDL could create window. Error: " << SDL_GetError() << "\n";
-        return;
+        return false;
     }
     renderer = SDL_CreateRenderer(window, nullptr);
     if (!renderer) {
         std::cerr << "SDL could not create renderer. Error: " << SDL_GetError() << "\n";
+        return false;
     }
     SDL_SetRenderVSync(renderer, 1);
 
@@ -32,6 +33,7 @@ void GameEngine::init(const char* title, int width, int height) {
     running = true;
 
     std::clog << "SDL Init succeeded\n";
+    return true;
 }
 
 void GameEngine::handleEvents() {

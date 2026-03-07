@@ -21,6 +21,7 @@ public:
     void beginFrame() {
         prevKeyState  = currKeyState;
         prevMouseState = currMouseState;
+        mouseDelta = Vec2F::zero();
     }
 
     // Call on each SDL_Event on the game loop
