@@ -40,10 +40,10 @@ public:
             }
             // WASD movement
             constexpr float speed = 100.0f;
-            if (inputCompo->isKeyDown(SDLK_W)) owner->transform.position.y -= speed * dt;
-            if (inputCompo->isKeyDown(SDLK_S)) owner->transform.position.y += speed * dt;
-            if (inputCompo->isKeyDown(SDLK_A)) owner->transform.position.x -= speed * dt;
-            if (inputCompo->isKeyDown(SDLK_D)) owner->transform.position.x += speed * dt;
+            if (inputCompo->isKeyDown(SDL_SCANCODE_W)) owner->transform.position.y -= speed * dt;
+            if (inputCompo->isKeyDown(SDL_SCANCODE_S)) owner->transform.position.y += speed * dt;
+            if (inputCompo->isKeyDown(SDL_SCANCODE_A)) owner->transform.position.x -= speed * dt;
+            if (inputCompo->isKeyDown(SDL_SCANCODE_D)) owner->transform.position.x += speed * dt;
         });
 
         // --- Enemy ---

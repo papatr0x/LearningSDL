@@ -4,7 +4,7 @@
 #define LETSLEARNSDL_INPUT_H
 #include "Vector.h"
 #include <SDL3/SDL_events.h>
-#include <unordered_set>
+#include <array>
 
 class Input {
 public:
@@ -29,19 +29,19 @@ public:
         switch (event.type) {
             case SDL_EVENT_KEY_DOWN:
                 if (!event.key.repeat)
-                    currKeyState.insert(event.key.key);
+                    currKeyState[event.key.scancode] = true;
                 break;
 
             case SDL_EVENT_KEY_UP:
-                currKeyState.erase(event.key.key);
+                currKeyState[event.key.scancode] = false;
                 break;
 
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                currMouseState.insert(event.button.button);
+                currMouseState |= static_cast<uint8_t>(1 << (event.button.button - 1));
                 break;
 
             case SDL_EVENT_MOUSE_BUTTON_UP:
-                currMouseState.erase(event.button.button);
+                currMouseState &= static_cast<uint8_t>(~(1 << (event.button.button - 1)));
                 break;
 
             case SDL_EVENT_MOUSE_MOTION:
@@ -57,44 +57,42 @@ public:
     }
     
     // Keyboard
-    bool isKeyDown(const SDL_Keycode key) const {
-        return currKeyState.contains(key);
-    }
-    
-    bool isKeyPressed(const SDL_Keycode key) const {
-        return currKeyState.contains(key) &&
-               !prevKeyState.contains(key);
+    bool isKeyDown(const SDL_Scancode key) const {
+        return currKeyState[key];
     }
 
-    bool isKeyReleased(const SDL_Keycode key) const {
-        return !currKeyState.contains(key) &&
-               prevKeyState.contains(key);
+    bool isKeyPressed(const SDL_Scancode key) const {
+        return currKeyState[key] && !prevKeyState[key];
+    }
+
+    bool isKeyReleased(const SDL_Scancode key) const {
+        return !currKeyState[key] && prevKeyState[key];
     }
 
     // Mouse
     bool isMouseButtonDown(const Uint8 button) const {
-        return currMouseState.contains(button);
+        return (currMouseState & (1 << (button - 1))) != 0;
     }
 
     bool isMouseButtonPressed(const Uint8 button) const {
-        return currMouseState.contains(button) &&
-               !prevMouseState.contains(button);
+        return (currMouseState & (1 << (button - 1))) != 0 &&
+               (prevMouseState & (1 << (button - 1))) == 0;
     }
 
     bool isMouseButtonReleased(const Uint8 button) const {
-        return !currMouseState.contains(button) &&
-               prevMouseState.contains(button);
+        return (currMouseState & (1 << (button - 1))) == 0 &&
+               (prevMouseState & (1 << (button - 1))) != 0;
     }
 
     const Vec2F& getMousePosition() const { return mousePosition; }
     const Vec2F& getMouseDelta()    const { return mouseDelta; }
 
 private:
-    std::unordered_set<SDL_Keycode> currKeyState;
-    std::unordered_set<SDL_Keycode> prevKeyState;
+    std::array<bool, SDL_SCANCODE_COUNT> currKeyState{};
+    std::array<bool, SDL_SCANCODE_COUNT> prevKeyState{};
 
-    std::unordered_set<Uint8> currMouseState;
-    std::unordered_set<Uint8> prevMouseState;
+    uint8_t currMouseState{};
+    uint8_t prevMouseState{};
 
     Vec2F mousePosition{};
     Vec2F mouseDelta{};
