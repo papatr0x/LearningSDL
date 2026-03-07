@@ -19,16 +19,20 @@ public:
     Component& operator=(Component&&)      = delete;
 
     virtual void onStart() noexcept {}
-    virtual void update(float dt) noexcept {}
+    virtual void updateComponent(float dt) noexcept {}
+    virtual void updatePhysics(float fixedDt) noexcept {}
     virtual void render(SDL_Renderer* renderer) noexcept {}
 
     bool isEnabled() const { return enabled; }
     void setEnabled(bool value) { enabled = value; }
     const std::string& getName() const { return name; }
+    void setUpdateInterval(float seconds) { intervalSeconds = seconds; }
+    float getUpdateInterval() const { return intervalSeconds; }
 
 protected:
     std::string name;
     bool enabled = true;
+    float intervalSeconds = 0.0f;
     Object* owner{};
 };
 

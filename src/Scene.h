@@ -25,24 +25,45 @@ public:
 
     void start() {
         load();
-        for (auto& [owner, comp] : componentPool)
-            comp->onStart();
+        for (auto& entry : componentPool)
+            entry.component->onStart();
     }
 
     void render(SDL_Renderer* renderer) {
         SDL_RenderClear(renderer);
-        for (auto& [owner, comp] : componentPool) {
-            if (owner->isActive() && comp->isEnabled())
-                comp->render(renderer);
+        for (auto& entry : componentPool) {
+            if (entry.owner->isActive() && entry.component->isEnabled())
+                entry.component->render(renderer);
         }
         SDL_RenderPresent(renderer);
     }
 
     void update(const float deltaTime) {
-        for (auto& [owner, comp] : componentPool) {
-            if (owner->isActive() && comp->isEnabled())
-                comp->update(deltaTime);
+        for (auto& entry : componentPool) {
+            if (!entry.owner->isActive() || !entry.component->isEnabled()) continue;
+
+            const float interval = entry.component->getUpdateInterval();
+            if (interval <= 0.0f) {
+                entry.component->updateComponent(deltaTime);
+            } else {
+                entry.intervalAccumulator += deltaTime;
+                if (entry.intervalAccumulator >= interval) {
+                    const float accumulatedDt = entry.intervalAccumulator;
+                    entry.intervalAccumulator = 0.0f;
+                    entry.component->updateComponent(accumulatedDt);
+                }
+            }
         }
+
+        physicsAccumulator += deltaTime;
+        while (physicsAccumulator >= fixedPhysicsStep) {
+            for (auto& entry : componentPool) {
+                if (entry.owner->isActive() && entry.component->isEnabled())
+                    entry.component->updatePhysics(fixedPhysicsStep);
+            }
+            physicsAccumulator -= fixedPhysicsStep;
+        }
+
         flushDestroyQueue();
     }
 
@@ -83,8 +104,10 @@ private:
             objects.end());
     }
 
-    struct ComponentEntry { Object* owner; Component* component; };
+    struct ComponentEntry { Object* owner; Component* component; float intervalAccumulator = 0.0f; };
     std::vector<ComponentEntry> componentPool;
     std::vector<std::unique_ptr<Object>> objects;
+    float physicsAccumulator = 0.0f;
+    static constexpr float fixedPhysicsStep = 1.0f / 60.0f;
 };
 #endif //LETSLEARNSDL_SCENE_H

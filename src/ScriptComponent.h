@@ -26,7 +26,7 @@ public:
         if (startFn) startFn(owner);
     }
 
-    void update(const float dt) noexcept override {
+    void updateComponent(const float dt) noexcept override {
         if (!isEnabled() || !updateFn) return;
         updateFn(dt, owner);
     }
