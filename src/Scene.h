@@ -25,6 +25,7 @@ public:
 
     void start() {
         load();
+        started = true;
         for (auto& entry : componentPool)
             entry.component->onStart();
     }
@@ -77,6 +78,8 @@ public:
         // Every component added to this object is registered in the flat pool.
         ptr->onComponentAdded = [this, owner = ptr](Component* c) {
             componentPool.push_back({owner, c});
+            if (started)
+                c->onStart();
         };
 
         objects.push_back(std::move(object));
@@ -104,10 +107,17 @@ private:
             objects.end());
     }
 
+    // This flag allows the onStart method to be called after the component is registered, even if it is
+    // created outside of the load() method.
+    bool started = false;
+
+    // These are used to calculate when to call the fixed step update (to be used for physics).
+    float physicsAccumulator = 0.0f;
+    static constexpr float fixedPhysicsStep = 1.0f / 60.0f;
+
+    // These holds Objects in Scene while providing better locality.
     struct ComponentEntry { Object* owner; Component* component; float intervalAccumulator = 0.0f; };
     std::vector<ComponentEntry> componentPool;
     std::vector<std::unique_ptr<Object>> objects;
-    float physicsAccumulator = 0.0f;
-    static constexpr float fixedPhysicsStep = 1.0f / 60.0f;
 };
 #endif //LETSLEARNSDL_SCENE_H
