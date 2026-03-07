@@ -10,15 +10,20 @@
 class ScriptComponent : public Component {
 public:
     // UpdateFn receives the owner so scripts can call getComponent<T>()
+    using StartFn  = std::function<void(Object* owner)>;
     using UpdateFn = std::function<void(float dt, Object* owner)>;
 
-    explicit ScriptComponent(Object* owner, const std::string& name, UpdateFn fn) : Component
-    (owner, name), updateFn(std::move(fn))
+    explicit ScriptComponent(Object* owner, const std::string& name, UpdateFn update, StartFn start = nullptr)
+        : Component(owner, name), updateFn(std::move(update)), startFn(std::move(start))
     {
         if (!updateFn)
             SDL_Log("ScriptComponent - update function is null");
         if (!owner)
             SDL_Log("ScriptComponent - owner ptr is null");
+    }
+
+    void onStart() noexcept override {
+        if (startFn) startFn(owner);
     }
 
     void update(const float dt) noexcept override {
@@ -28,6 +33,7 @@ public:
 
 private:
     UpdateFn updateFn;
+    StartFn  startFn;
 };
 
 #endif //LETSLEARNSDL_SCRIPTCOMPONENT_H

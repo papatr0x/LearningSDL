@@ -20,8 +20,14 @@ public:
     Scene(Scene&&)                 = delete;
     Scene& operator=(Scene&&)      = delete;
 
-    virtual void load()   = 0;
+    virtual void load() = 0;
     virtual void unload() {}
+
+    void start() {
+        load();
+        for (auto& [owner, comp] : componentPool)
+            comp->onStart();
+    }
 
     void render(SDL_Renderer* renderer) {
         SDL_RenderClear(renderer);

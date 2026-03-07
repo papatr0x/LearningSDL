@@ -70,7 +70,7 @@ void GameEngine::run() {
             if (activeScene)
                 activeScene->unload();
             activeScene = std::move(pendingScene);
-            activeScene->load();
+            activeScene->start();
         }
         if (!activeScene) continue;
 

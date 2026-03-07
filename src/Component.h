@@ -18,6 +18,7 @@ public:
     Component(Component&&)                 = delete;
     Component& operator=(Component&&)      = delete;
 
+    virtual void onStart() noexcept {}
     virtual void update(float dt) noexcept {}
     virtual void render(SDL_Renderer* renderer) noexcept {}
 
