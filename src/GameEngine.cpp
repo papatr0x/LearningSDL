@@ -71,6 +71,7 @@ void GameEngine::run() {
         if (pendingScene) {
             if (activeScene)
                 activeScene->unload();
+            TextureManager::instance().unloadAll();
             activeScene = std::move(pendingScene);
             activeScene->start();
         }
