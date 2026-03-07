@@ -12,7 +12,7 @@ GameEngine& GameEngine::instance() {
 }
 
 bool GameEngine::init(const char* title, int width, int height) {
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << "\n";
         return false;
     }

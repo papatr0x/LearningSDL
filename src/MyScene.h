@@ -23,7 +23,12 @@ public:
         auto player  = addObject<Object>("Player");
         player->setTag("player");
         player->transform.position = {screenWidth/2.f, screenHeight/2.f};
-        player->addComponent<InputComponent>("Player InputComponent", engine.getInput());
+        auto* inputComp = player->addComponent<InputComponent>("Player InputComponent", engine.getInput());
+        inputComp->bind("MoveUp",    SDL_SCANCODE_W);
+        inputComp->bind("MoveDown",  SDL_SCANCODE_S);
+        inputComp->bind("MoveLeft",  SDL_SCANCODE_A);
+        inputComp->bind("MoveRight", SDL_SCANCODE_D);
+
         auto playerRenderComp = player->addComponent<RenderComponent>("Player RenderComponent");
         playerRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-gold_112x112.png"));
 
@@ -38,12 +43,17 @@ public:
             if (inputCompo->isMouseButtonPressed(SDL_BUTTON_LEFT)) {
                 owner->transform.position = inputCompo->getMousePosition();
             }
-            // WASD movement
             constexpr float speed = 100.0f;
-            if (inputCompo->isKeyDown(SDL_SCANCODE_W)) owner->transform.position.y -= speed * dt;
-            if (inputCompo->isKeyDown(SDL_SCANCODE_S)) owner->transform.position.y += speed * dt;
-            if (inputCompo->isKeyDown(SDL_SCANCODE_A)) owner->transform.position.x -= speed * dt;
-            if (inputCompo->isKeyDown(SDL_SCANCODE_D)) owner->transform.position.x += speed * dt;
+
+            // WASD movement
+            if (inputCompo->isActionDown("MoveUp"))    owner->transform.position.y -= speed * dt;
+            if (inputCompo->isActionDown("MoveDown"))  owner->transform.position.y += speed * dt;
+            if (inputCompo->isActionDown("MoveLeft"))  owner->transform.position.x -= speed * dt;
+            if (inputCompo->isActionDown("MoveRight")) owner->transform.position.x += speed * dt;
+
+            // Left analog stick
+            owner->transform.position.x += inputCompo->getAxis(SDL_GAMEPAD_AXIS_LEFTX) * speed * dt;
+            owner->transform.position.y += inputCompo->getAxis(SDL_GAMEPAD_AXIS_LEFTY) * speed * dt;
         });
 
         // --- Enemy ---

@@ -38,7 +38,7 @@ private:
     std::unique_ptr<Scene> activeScene;
     std::unique_ptr<Scene> pendingScene;
     bool running{false};
-    const float maxDeltaTime{0.05f};
+    static constexpr float maxDeltaTime{0.05f};
 };
 
 
