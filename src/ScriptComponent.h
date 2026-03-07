@@ -10,7 +10,6 @@
 class ScriptComponent : public Component {
 public:
     // UpdateFn receives the owner so scripts can call getComponent<T>()
-    // without capturing raw component pointers.
     using UpdateFn = std::function<void(float dt, Object* owner)>;
 
     explicit ScriptComponent(Object* owner, const std::string& name, UpdateFn fn) : Component
@@ -18,9 +17,11 @@ public:
     {
         if (!updateFn)
             SDL_Log("ScriptComponent - update function is null");
+        if (!owner)
+            SDL_Log("ScriptComponent - owner ptr is null");
     }
 
-    void update(float dt) noexcept override {
+    void update(const float dt) noexcept override {
         if (!isEnabled() || !updateFn) return;
         updateFn(dt, owner);
     }

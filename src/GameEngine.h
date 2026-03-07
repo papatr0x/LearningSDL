@@ -6,12 +6,19 @@
 #include <SDL3/SDL.h>
 #include <vector>
 
+#include "Input.h"
+
 class GameEngine {
 public:
+    // No copy allowed
+    GameEngine(const GameEngine&) = delete;
+    GameEngine& operator=(const GameEngine&) = delete;
+
     static GameEngine& instance();
 
     void init(const char* title, int width, int height);
     void render();
+    Input& getInput() { return input; }
     void update(float deltaTime);
     void handleEvents();
     void shutdown() const;
@@ -38,16 +45,15 @@ public:
 
 private:
     GameEngine() = default;
-    GameEngine(const GameEngine&) = delete;
-    GameEngine& operator=(const GameEngine&) = delete;
-    SDL_Window* m_window{};
-    SDL_Renderer* m_renderer{};
-    bool m_running{false};
 
     struct ComponentEntry { Object* owner; Component* component; };
 
+    SDL_Window* m_window{};
+    SDL_Renderer* m_renderer{};
+    bool m_running{false};
     std::vector<std::unique_ptr<Object>> m_sceneObjects;
     std::vector<ComponentEntry> m_componentPool;
+    Input input{};
 };
 
 

@@ -6,26 +6,40 @@
 #include "TextureManager.h"
 #include <cmath>
 
+#include "InputComponent.h"
+
 void initGame() {
     GameEngine& engine = GameEngine::instance();
     TextureManager& texManager = TextureManager::instance();
 
+    int screenWidth, screenHeight;
+    SDL_GetWindowSize(GameEngine::instance().getWindow(), &screenWidth, &screenHeight);
+
     // --- Player ---
     auto player  = engine.addObjectToScene<Object>("Player");
     player->setTag("player");
+    player->transform.position = {screenWidth/2.f, screenHeight/2.f};
+    player->addComponent<InputComponent>("Player InputComponent", engine.getInput());
     auto playerRenderComp = player->addComponent<RenderComponent>("Player RenderComponent");
     playerRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-gold_112x112.png"));
-    float angle = 0.0f;
-    player->addComponent<ScriptComponent>("Player Script", [angle](float dt, Object* player) mutable {
-        int w, h;
-        SDL_GetWindowSize(GameEngine::instance().getWindow(), &w, &h);
-        const float centerX = static_cast<float>(w) * 0.5f;
-        const float centerY = static_cast<float>(h) * 0.5f;
-        constexpr float radius  = 200.0f;
-        constexpr float speed   = 1.0f;
-        angle += speed * dt;
-        player->transform.position.x = centerX + radius * std::cos(angle) - 56;
-        player->transform.position.y = centerY + radius * std::sin(angle) - 56;
+
+    player->addComponent<ScriptComponent>("Player Script", [](float dt, Object* owner) mutable {
+        auto* inputCompo = owner->getComponent<InputComponent>();
+        if (!inputCompo) {
+            SDL_Log("ScriptComponent::lambdaScript - InputComponent is null");
+            return;
+        }
+
+        // Move to the mouse position
+        if (inputCompo->isMouseButtonPressed(SDL_BUTTON_LEFT)) {
+            owner->transform.position = inputCompo->getMousePosition();
+        }
+        // WASD movement
+        constexpr float speed = 100.0f;
+        if (inputCompo->isKeyDown(SDLK_W)) owner->transform.position.y -= speed * dt;
+        if (inputCompo->isKeyDown(SDLK_S)) owner->transform.position.y += speed * dt;
+        if (inputCompo->isKeyDown(SDLK_A)) owner->transform.position.x -= speed * dt;
+        if (inputCompo->isKeyDown(SDLK_D)) owner->transform.position.x += speed * dt;
     });
 
     // --- Enemy ---
@@ -33,8 +47,6 @@ void initGame() {
     enemy->setTag("enemy");
     auto enemyRenderComp = enemy->addComponent<RenderComponent>("Enemy RenderComponent");
     enemyRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-pink_45x40.png"));
-    int screenWidth, screenHeight;
-    SDL_GetWindowSize(GameEngine::instance().getWindow(), &screenWidth, &screenHeight);
     enemy->transform = Transform::make_position(screenWidth/2,screenHeight/2);
 
     enemy->addComponent<ScriptComponent>("Enemy Script",
@@ -63,7 +75,7 @@ int main() {
 
     while (engine.running()) {
         uint64_t currentTime = SDL_GetTicks();
-        float deltaTime = static_cast<float>(currentTime - lastTime) / 1000.0f;
+        const float deltaTime = static_cast<float>(currentTime - lastTime) / 1000.0f;
         lastTime = currentTime;
 
         engine.handleEvents();

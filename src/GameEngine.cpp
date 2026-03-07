@@ -51,11 +51,12 @@ void GameEngine::update(float deltaTime) {
 }
 
 void GameEngine::handleEvents() {
+    input.beginFrame();
+
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_EVENT_QUIT) {
-            m_running = false;
-        }
+        if (event.type == SDL_EVENT_QUIT) m_running = false;
+        input.processEvent(event);
     }
 }
 
