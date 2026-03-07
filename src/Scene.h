@@ -30,7 +30,7 @@ public:
             entry.component->onStart();
     }
 
-    void render(SDL_Renderer* renderer) {
+    void render(SDL_Renderer* renderer) const {
         SDL_RenderClear(renderer);
 
         std::vector<Component*> renderables;
@@ -104,20 +104,16 @@ public:
 
 private:
     void flushDestroyQueue() {
-        componentPool.erase(
-            std::remove_if(componentPool.begin(), componentPool.end(),
-                [](const ComponentEntry& e) {
-                    return e.owner->isPendingDestroy() || e.component->isPendingDestroy();
-                }),
-            componentPool.end());
+        std::erase_if(componentPool,
+                      [](const ComponentEntry& e) {
+                          return e.owner->isPendingDestroy() || e.component->isPendingDestroy();
+                      });
 
         for (auto& object : objects)
             object->flushDestroyedComponents();
 
-        objects.erase(
-            std::remove_if(objects.begin(), objects.end(),
-                [](const std::unique_ptr<Object>& o) { return o->isPendingDestroy(); }),
-            objects.end());
+        std::erase_if(objects,
+                      [](const std::unique_ptr<Object>& o) { return o->isPendingDestroy(); });
     }
 
     // This flag allows the onStart method to be called after the component is registered, even if it is
