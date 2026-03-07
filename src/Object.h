@@ -8,8 +8,6 @@
 #include <memory>
 #include <functional>
 
-class Component;
-
 class Object {
 public:
     explicit Object(std::string name) : name(std::move(name)) { }

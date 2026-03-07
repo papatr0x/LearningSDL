@@ -49,6 +49,7 @@ void GameEngine::handleEvents() {
 void GameEngine::shutdown() {
     std::clog << "shutting down game\n";
     if (activeScene) activeScene->unload();
+    TextureManager::instance().unloadAll(); // destroy textures before SDL goes down
     if (window) SDL_DestroyWindow(window);
     if (renderer) SDL_DestroyRenderer(renderer);
     SDL_Quit();

@@ -2,7 +2,6 @@
 
 #ifndef LETSLEARNSDL_GAME_H
 #define LETSLEARNSDL_GAME_H
-#include "Object.h"
 #include "Input.h"
 #include "Scene.h"
 #include <SDL3/SDL.h>

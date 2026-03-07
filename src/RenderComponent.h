@@ -2,10 +2,9 @@
 
 #ifndef LETSLEARNSDL_RENDERCOMPONENT_H
 #define LETSLEARNSDL_RENDERCOMPONENT_H
-#include <SDL3/SDL.h>
-
 #include "Component.h"
 #include "Texture.h"
+#include <SDL3/SDL.h>
 
 class RenderComponent : public Component {
 public:
