@@ -1,6 +1,7 @@
 // Created by Patricio Palma on 09-03-26.
 
 #include "GameScene.h"
+#include "AIController.h"
 #include "Animation.h"
 #include "AnimatorComponent.h"
 #include "AudioComponent.h"
@@ -8,42 +9,134 @@
 #include "CollisionSystem.h"
 #include "FontManager.h"
 #include "GameEngine.h"
-#include "InputComponent.h"
 #include "MusicComponent.h"
+#include "PlayerController.h"
 #include "RenderComponent.h"
-#include "ScriptComponent.h"
 #include "TextComponent.h"
 #include "TextureManager.h"
 #include "TransitionComponent.h"
 
-void GameScene::load()  {
+// ---------------------------------------------------------------------------
+// Player controller — drives the player pawn with pre-mapped bindings.
+// P0 defaults (WASD + Space/LCtrl + gamepad) are inherited from PlayerController.
+// ---------------------------------------------------------------------------
+class MyPlayerController : public PlayerController {
+public:
+    MyPlayerController() : PlayerController(0) {
+        bind("Exit",          SDL_SCANCODE_ESCAPE);
+        bind("CameraToggle",  SDL_SCANCODE_P);
+    }
+
+protected:
+    void update(float dt) override {
+        if (!hasPawn()) return;
+
+        constexpr float speed = 100.f;
+        getPawn()->transform.position += getMovementAxis() * speed * dt;
+
+        if (getInput().isMouseButtonPressed(SDL_BUTTON_LEFT))
+            getPawn()->transform.position =
+                getPawn()->getScene()->screenToWorld(getInput().getMousePosition());
+
+        if (isActionPressed("Exit"))
+            getPawn()->getComponent<TransitionComponent>()->trigger();
+
+        if (isActionPressed("CameraToggle"))
+            camMode_ = (camMode_ + 1) % 3;
+
+        auto& cam = getPawn()->getScene()->getCamera();
+        if (camMode_ == 1) {
+            cam.position = getPawn()->transform.position;
+        } else if (camMode_ == 2) {
+            // Lazy lookup — enemy is created after this controller in load().
+            if (!enemy_) enemy_ = getPawn()->getScene()->findObject("Enemy");
+            if (enemy_)  cam.position = enemy_->transform.position;
+        }
+    }
+
+private:
+    int     camMode_{0};
+    Object* enemy_{nullptr};
+};
+
+// ---------------------------------------------------------------------------
+// Enemy AI — bounces around the screen and reflects off the player on contact.
+// Discovers AudioComponent and collider callbacks from the pawn in onPossess.
+// ---------------------------------------------------------------------------
+class MyEnemyBounceAI : public AIController {
+public:
+    MyEnemyBounceAI(float screenW, float screenH)
+        : screenW_(screenW), screenH_(screenH),
+          dirX_((rand() > RAND_MAX / 2) ? 1.f : -1.f),
+          dirY_((rand() > RAND_MAX / 2) ? 1.f : -1.f) {}
+
+protected:
+    void onPossess(Object* pawn) override {
+        bounceSfx_ = pawn->getComponent<AudioComponent>("Bounce SFX");
+
+        if (auto* col = pawn->getComponent<CircleColliderComponent>())
+            col->onEnter = [this](ColliderComponent* other) { onHit(other); };
+    }
+
+    void update(float dt) override {
+        if (!hasPawn()) return;
+
+        constexpr float speed = 100.f;
+        Vec2F& pos = getPawn()->transform.position;
+        pos.x += dirX_ * speed * dt;
+        pos.y += dirY_ * speed * dt;
+
+        bool bounced = false;
+        if (pos.x > screenW_ || pos.x < 0.f) { dirX_ = -dirX_; bounced = true; }
+        if (pos.y > screenH_ || pos.y < 0.f) { dirY_ = -dirY_; bounced = true; }
+        if (bounced && bounceSfx_) bounceSfx_->play();
+    }
+
+private:
+    void onHit(ColliderComponent* other) {
+        if (other->getOwner()->getTag() != "player") return;
+
+        // Reflect velocity: v' = v - 2(v·n)n
+        const Vec2F n_raw = getPawn()->transform.position - other->getOwner()->transform.position;
+        const float len = n_raw.length();
+        if (len == 0.f) return;
+        const Vec2F n   = n_raw * (1.f / len);
+        const float dot = dirX_ * n.x + dirY_ * n.y;
+        dirX_ -= 2.f * dot * n.x;
+        dirY_ -= 2.f * dot * n.y;
+
+        if (bounceSfx_) bounceSfx_->play();
+    }
+
+    float          screenW_, screenH_;
+    float          dirX_, dirY_;
+    AudioComponent* bounceSfx_{nullptr};
+};
+
+// ---------------------------------------------------------------------------
+
+void GameScene::load() {
     backgroundColor = SDL_Color{0x1f, 0x1f, 0x1f, 0xff};
     addSubsystem<CollisionSystem>();
 
     // --- Audio ---
     auto audioObj = addObject<Object>("Audio");
-    auto bgMusic = audioObj->addComponent<MusicComponent>("BGMusic", "assets/Music.ogg");
+    auto bgMusic  = audioObj->addComponent<MusicComponent>("BGMusic", "assets/Music.ogg");
     bgMusic->setGain(0.1);
 
-    GameEngine& engine = GameEngine::instance();
+    GameEngine& engine       = GameEngine::instance();
     TextureManager& texManager = TextureManager::instance();
 
     int screenWidth, screenHeight;
-    SDL_GetWindowSize(GameEngine::instance().getWindow(), &screenWidth, &screenHeight);
+    SDL_GetWindowSize(engine.getWindow(), &screenWidth, &screenHeight);
 
     // --- Player ---
-    auto player  = addObject<Object>("Player");
+    auto player = addObject<Object>("Player");
     player->setTag("player");
-    player->transform.position = {screenWidth/2.f, screenHeight/2.f};
-    auto* inputComp = player->addComponent<InputComponent>("Player InputComponent");
-    inputComp->bind("MoveUp",    SDL_SCANCODE_W);
-    inputComp->bind("MoveDown",  SDL_SCANCODE_S);
-    inputComp->bind("MoveLeft",  SDL_SCANCODE_A);
-    inputComp->bind("MoveRight", SDL_SCANCODE_D);
-    inputComp->bind("Exit",      SDL_SCANCODE_ESCAPE);
+    player->transform.position = {screenWidth / 2.f, screenHeight / 2.f};
 
-    auto playerRenderComp = player->addComponent<RenderComponent>("Player RenderComponent");
-    playerRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-gold_112x112.png"));
+    auto* playerRender = player->addComponent<RenderComponent>("Player RenderComponent");
+    playerRender->setTexture(texManager.load(engine.getRenderer(), "assets/fish-gold_112x112.png"));
 
     auto* playerCollider = player->addComponent<BoxColliderComponent>("Player Collider", Vec2F{100.f, 100.f});
     playerCollider->debugDraw = true;
@@ -54,112 +147,36 @@ void GameScene::load()  {
         SDL_Log("Player separated from: %s", other->getOwner()->getName().c_str());
     };
 
-    auto tc = player->addComponent<TransitionComponent>("ToMenu","menu");
-    player->addComponent<ScriptComponent>("Player Script", [inputComp, tc](const float dt, Object* owner) {
-        if (!inputComp) {
-            SDL_Log("ScriptComponent::lambdaScript - InputComponent is null");
-            return;
-        }
+    player->addComponent<TransitionComponent>("ToMenu", "menu");
 
-        // Move to the mouse position
-        if (inputComp->isMouseButtonPressed(SDL_BUTTON_LEFT)) {
-            owner->transform.position = owner->getScene()->screenToWorld(inputComp->getMousePosition());
-        }
-        constexpr float speed = 100.0f;
-
-        // WASD movement
-        if (inputComp->isActionDown("MoveUp"))    owner->transform.position.y -= speed * dt;
-        if (inputComp->isActionDown("MoveDown"))  owner->transform.position.y += speed * dt;
-        if (inputComp->isActionDown("MoveLeft"))  owner->transform.position.x -= speed * dt;
-        if (inputComp->isActionDown("MoveRight")) owner->transform.position.x += speed * dt;
-        if (inputComp->isActionDown("Exit"))      tc->trigger();
-
-        // Left analog stick
-        owner->transform.position.x += inputComp->getAxis(SDL_GAMEPAD_AXIS_LEFTX) * speed * dt;
-        owner->transform.position.y += inputComp->getAxis(SDL_GAMEPAD_AXIS_LEFTY) * speed * dt;
-    });
+    addPlayerController<MyPlayerController>()->possess(player);
 
     // --- HUD ---
     TTF_Font* font = FontManager::instance().load("assets/Roboto-Regular.ttf", 16.f);
     auto hud = addObject<Object>("HUD");
-    auto hudText = hud->addComponent<TextComponent>("HUD Text", "Move with WASD/Gamepad - ESC to exit.", font, Vec2F{10.f, 10.f}, SDL_Color{255, 255, 0, 255});
+    auto hudText = hud->addComponent<TextComponent>("HUD Text", "Move with WASD/Gamepad - ESC to exit.",
+                                                     font, Vec2F{10.f, 10.f}, SDL_Color{255, 255, 0, 255});
     hudText->setPivot(Vec2F{0.f, 0.f});
 
     // --- Enemy ---
-    auto enemy  = addObject<Object>("Enemy");
+    auto enemy = addObject<Object>("Enemy");
     enemy->setTag("enemy");
-    auto* enemyRenderComp = enemy->addComponent<RenderComponent>("Enemy RenderComponent");
-    enemyRenderComp->setTexture(texManager.load(engine.getRenderer(), "assets/fish-pink_45x40.png"));
-    enemy->transform = Transform::make_position(screenWidth/2, screenHeight/2);
+    auto* enemyRender = enemy->addComponent<RenderComponent>("Enemy RenderComponent");
+    enemyRender->setTexture(texManager.load(engine.getRenderer(), "assets/fish-pink_45x40.png"));
+    enemy->transform = Transform::make_position(screenWidth / 2, screenHeight / 2);
 
-    struct EnemyState { float dirX, dirY; };
-    auto state = std::make_shared<EnemyState>(
-        (rand() > RAND_MAX/2) ? 1.f : -1.f,
-        (rand() > RAND_MAX/2) ? 1.f : -1.f
-    );
-
-    // Add sound effect on bounce
-    auto bounceSfx = enemy->addComponent<AudioComponent>("Bounce SFX", "assets/Bounce.mp3", 0.8f);
+    enemy->addComponent<AudioComponent>("Bounce SFX", "assets/Bounce.mp3", 0.8f);
 
     auto* enemyCollider = enemy->addComponent<CircleColliderComponent>("Enemy Collider", 18.f);
     enemyCollider->debugDraw = true;
-    enemyCollider->onEnter = [state, enemy, bounceSfx](ColliderComponent* other) {
-        if (other->getOwner()->getTag() != "player") return;
 
-        // Collision normal: from player center to enemy center.
-        const Vec2F n_raw = enemy->transform.position - other->getOwner()->transform.position;
-        const float len = std::sqrt(n_raw.x * n_raw.x + n_raw.y * n_raw.y);
-        if (len == 0.f) return;
-        const Vec2F n = n_raw * (1.f / len);
-
-        // Reflect velocity: v' = v - 2(v·n)n
-        const float dot = state->dirX * n.x + state->dirY * n.y;
-        state->dirX -= 2.f * dot * n.x;
-        state->dirY -= 2.f * dot * n.y;
-
-        bounceSfx->play();
-    };
-
-    auto* enemyAnimator = enemy->addComponent<AnimatorComponent>("Enemy Animator", enemyRenderComp);
+    auto* enemyAnimator = enemy->addComponent<AnimatorComponent>("Enemy Animator", enemyRender);
     enemyAnimator->addAnimation(AnimationBuilder::fromStrip("swim", 5, 45, 40));
     enemyAnimator->play("swim");
 
-    enemy->addComponent<ScriptComponent>("Enemy Script",
-        [width=static_cast<float>(screenWidth), height=static_cast<float>(screenHeight), state, bounceSfx]
-        (float dt, Object* enemy) {
-            constexpr float speed = 100.f;
-            Vec2F& pos = enemy->transform.position;
-            pos.x += state->dirX * speed * dt;
-            pos.y += state->dirY * speed * dt;
+    addPlayerController<MyEnemyBounceAI>(
+        static_cast<float>(screenWidth),
+        static_cast<float>(screenHeight)
+    )->possess(enemy);
 
-            bool bounced = false;
-            if (pos.x > width  || pos.x < 0.f) {
-                state->dirX = -state->dirX;
-                bounced = true;
-            }
-            if (pos.y > height || pos.y < 0.f) {
-                state->dirY = -state->dirY;
-                bounced = true;
-            }
-            if (bounced)
-                bounceSfx->play();
-    });
-
-    // --- Camera controller ---
-    auto* camCtrl = addObject<Object>("CameraController");
-    auto* camInput = camCtrl->addComponent<InputComponent>("CameraInput");
-    camInput->bind("CameraToggle", SDL_SCANCODE_P);
-
-    // 0 = Normal, 1 = Player, 2 = Enemy
-    auto camMode = std::make_shared<int>(0);
-    camCtrl->addComponent<ScriptComponent>("CameraScript",
-        [camInput, player, enemy, camMode](float /*dt*/, Object* owner) {
-            if (camInput->isActionPressed("CameraToggle"))
-                *camMode = (*camMode + 1) % 3;
-
-            if (*camMode == 1)
-                owner->getScene()->getCamera().position = player->transform.position;
-            else if (*camMode == 2)
-                owner->getScene()->getCamera().position = enemy->transform.position;
-        });
 }
