@@ -186,6 +186,7 @@ private:
     TTF_TextEngine* textEngine{};
     Camera camera;
     Vec2F worldRenderOffset{};
+    Vec2 screenSize{};
 
     float physicsAccumulator{0.0f};
     static constexpr float fixedPhysicsStep{1.0f / 60.0f};
@@ -208,6 +209,10 @@ protected:
         T* ptr = sys.get();
         subsystems.push_back(std::move(sys));
         return ptr;
+    }
+
+    const Vec2& getScreenSize() const {
+        return screenSize;
     }
 
     SDL_Color backgroundColor{0,0,0, 0xff};

@@ -9,7 +9,6 @@ Scene::Scene() {
     textEngine = GameEngine::instance().getTextEngine();
     // Default camera position to screen center so that world coordinate (0,0) maps to
     // the top-left corner — preserving the existing screen-coordinate convention.
-    int w{}, h{};
-    SDL_GetRenderOutputSize(GameEngine::instance().getRenderer(), &w, &h);
-    camera.position = { w * 0.5f, h * 0.5f };
+    SDL_GetRenderOutputSize(GameEngine::instance().getRenderer(), &screenSize.x, &screenSize.y);
+    camera.position = { screenSize.x * 0.5f, screenSize.y * 0.5f };
 }
