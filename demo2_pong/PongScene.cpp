@@ -252,10 +252,9 @@ void PongScene::load() {
     PongState::reset();
     backgroundColor = {0x1a, 0x1a, 0x2e, 0xff};
 
-    int sw, sh;
-    SDL_GetWindowSize(GameEngine::instance().getWindow(), &sw, &sh);
-    const float fW = static_cast<float>(sw);
-    const float fH = static_cast<float>(sh);
+    auto& [sw, sh] = getScreenSize();
+    // const float fW = static_cast<float>(sw);
+    // const float fH = static_cast<float>(sh);
 
     TTF_Font* fontScore = FontManager::instance().load("assets/Roboto-Regular.ttf", 48.f);
     TTF_Font* fontHud   = FontManager::instance().load("assets/Roboto-Regular.ttf", 16.f);
@@ -267,7 +266,7 @@ void PongScene::load() {
 
     // --- Dashed center divider ---
     auto* centerLine = addObject<Object>("CenterLine");
-    centerLine->transform.position = {fW * 0.5f, 0.f};
+    centerLine->transform.position = {sw * 0.5f, 0.f};
     for (int i = 0; i < 30; ++i) {
         auto* dash = centerLine->addComponent<SquareComponent>(
             "Dash" + std::to_string(i), Vec2F{2.f, 10.f}, gray);
@@ -276,34 +275,34 @@ void PongScene::load() {
 
     // --- Paddles ---
     auto* p1 = addObject<Object>("P1Paddle");
-    p1->transform.position = {40.f, fH * 0.5f};
+    p1->transform.position = {40.f, sh * 0.5f};
     p1->addComponent<SquareComponent>("Shape", paddleSize, white);
 
     auto* p2 = addObject<Object>("P2Paddle");
-    p2->transform.position = {fW - 40.f, fH * 0.5f};
+    p2->transform.position = {sw - 40.f, sh * 0.5f};
     p2->addComponent<SquareComponent>("Shape", paddleSize, white);
 
     // --- Ball ---
     auto* ball = addObject<Object>("Ball");
-    ball->transform.position = {fW * 0.5f, fH * 0.5f};
+    ball->transform.position = {sw * 0.5f, sh * 0.5f};
     ball->addComponent<CircleComponent>("Shape", ballRadius, white);
 
     // --- Score display ---
     auto* p1ScoreObj = addObject<Object>("P1Score");
-    p1ScoreObj->transform.position = {fW * 0.25f, 50.f};
+    p1ScoreObj->transform.position = {sw * 0.25f, 50.f};
     p1ScoreObj->addComponent<TextComponent>("Text", "0", fontScore);
 
     auto* p2ScoreObj = addObject<Object>("P2Score");
-    p2ScoreObj->transform.position = {fW * 0.75f, 50.f};
+    p2ScoreObj->transform.position = {sw * 0.75f, 50.f};
     p2ScoreObj->addComponent<TextComponent>("Text", "0", fontScore);
 
     // --- HUD hint ---
     auto* hud = addObject<Object>("HUD");
-    hud->transform.position = {fW * 0.5f, fH - 20.f};
+    hud->transform.position = {sw * 0.5f, sh - 20.f};
     hud->addComponent<TextComponent>("Hint", "Up/Down | First to 10 wins", fontHud);
 
     // --- Controllers ---
-    addPlayerController<PaddleController>(fH)->possess(p1);
-    addPlayerController<PaddleAI>(fH)->possess(p2);
-    addPlayerController<BallController>(fW, fH)->possess(ball);
+    addPlayerController<PaddleController>(sh)->possess(p1);
+    addPlayerController<PaddleAI>(sh)->possess(p2);
+    addPlayerController<BallController>(sw, sh)->possess(ball);
 }
