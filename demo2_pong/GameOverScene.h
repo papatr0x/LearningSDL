@@ -29,7 +29,7 @@ public:
         const std::string scoreText =
             std::to_string(PongState::scoreP1) + "  -  " + std::to_string(PongState::scoreP2);
 
-        auto ui = addObject<Object>("UI");
+        auto ui = addObject("UI");
         ui->transform.position = {sw * 0.5f, sh * 0.5f};
 
         auto winner = ui->addComponent<TextComponent>("Winner", winnerText, fontBig);
@@ -42,7 +42,7 @@ public:
         hint->setOffset({0.f, 100.f});
 
         // --- Input ---
-        auto inputObj = addObject<Object>("Input");
+        auto inputObj = addObject("Input");
         auto inputComp = inputObj->addComponent<InputComponent>("GameOverInput");
         auto tc = inputObj->addComponent<TransitionComponent>("ToMenu", "menu");
 

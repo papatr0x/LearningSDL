@@ -17,11 +17,11 @@ public:
         SDL_GetWindowSize(GameEngine::instance().getWindow(), &screenWidth, &screenHeight);
         TTF_Font* font = FontManager::instance().load("assets/Roboto-Regular.ttf", 24.f);
 
-        auto text = addObject<Object>("TransitionText");
+        auto text = addObject("TransitionText");
         text->transform.position = {screenWidth / 2.f, screenHeight / 2.f};
         text->addComponent<TextComponent>("Label", "Loading...", font);
 
-        auto timerObject = addObject<Object>("Timer");
+        auto timerObject = addObject("Timer");
         auto tc = timerObject->addComponent<TransitionComponent>("Complete"); // empty = completePendingTransition
         timerObject->addComponent<TimerComponent>("Timer", 2.f, [tc]{ tc->trigger(); });
     }

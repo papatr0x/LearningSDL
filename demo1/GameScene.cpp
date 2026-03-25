@@ -120,7 +120,7 @@ void GameScene::load() {
     addSubsystem<CollisionSystem>();
 
     // --- Audio ---
-    auto audioObj = addObject<Object>("Audio");
+    auto audioObj = addObject("Audio");
     auto bgMusic  = audioObj->addComponent<MusicComponent>("BGMusic", "assets/Music.ogg");
     bgMusic->setGain(0.1);
 
@@ -130,7 +130,7 @@ void GameScene::load() {
     auto [screenWidth, screenHeight] = getScreenSize();
 
     // --- Player ---
-    auto player = addObject<Object>("Player");
+    auto player = addObject("Player");
     player->setTag("player");
     player->transform.position = {screenWidth / 2.f, screenHeight / 2.f};
 
@@ -152,13 +152,13 @@ void GameScene::load() {
 
     // --- HUD ---
     TTF_Font* font = FontManager::instance().load("assets/Roboto-Regular.ttf", 16.f);
-    auto hud = addObject<Object>("HUD");
+    auto hud = addObject("HUD");
     auto hudText = hud->addComponent<TextComponent>("HUD Text", "Move with WASD/Gamepad - ESC to exit.",
         font, SDL_Color{255, 255, 0, 255},Vec2F{10.f, 10.f});
     hudText->setPivot(Vec2F{0.f, 0.f});
 
     // --- Enemy ---
-    auto enemy = addObject<Object>("Enemy");
+    auto enemy = addObject("Enemy");
     enemy->setTag("enemy");
     auto* enemyRender = enemy->addComponent<RenderComponent>("Enemy RenderComponent");
     enemyRender->setTexture(texManager.load(engine.getRenderer(), "assets/fish-pink_45x40.png"));

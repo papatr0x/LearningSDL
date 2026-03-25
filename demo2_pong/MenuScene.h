@@ -24,7 +24,7 @@ public:
         const float cx = sw * 0.5f;
         const float cy = sh * 0.5f;
 
-        auto* ui = addObject<Object>("UI");
+        auto* ui = addObject("UI");
         ui->transform.position = {cx, cy};
 
         auto* title = ui->addComponent<TextComponent>("Title", "PONG", fontBig);
@@ -37,7 +37,7 @@ public:
         quit->setOffset({0.f, 60.f});
 
         // --- Input ---
-        auto* inputObj  = addObject<Object>("Input");
+        auto* inputObj  = addObject("Input");
         auto* inputComp = inputObj->addComponent<InputComponent>("MenuInput");
         auto* tc        = inputObj->addComponent<TransitionComponent>("ToPong", "pong");
 

@@ -19,11 +19,11 @@ public:
         SDL_GetWindowSize(GameEngine::instance().getWindow(), &screenWidth, &screenHeight);
         TTF_Font* font = FontManager::instance().load("assets/Roboto-Bold.ttf", 32.f);
 
-        auto logo = addObject<Object>("Logo");
+        auto logo = addObject("Logo");
         logo->transform.position = {screenWidth / 2.f, screenHeight / 2.f};
         logo->addComponent<TextComponent>("Label", "MY GAME STUDIO", font);
 
-        auto timer = addObject<Object>("Timer");
+        auto timer = addObject("Timer");
         auto tc = timer->addComponent<TransitionComponent>("ToMenu", "menu");
         timer->addComponent<TimerComponent>("Timer", delayTime, [tc]{ tc->trigger(); });
     }

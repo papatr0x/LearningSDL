@@ -128,7 +128,7 @@ public:
         return ptr;
     }
 
-    template<typename T, typename... Args>
+    template<typename T = Object, typename... Args>
     T* addObject(Args&&... args) {
         static_assert(std::is_base_of_v<Object, T>, "T MUST derive of Object");
 

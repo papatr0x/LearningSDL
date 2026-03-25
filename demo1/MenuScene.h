@@ -21,7 +21,7 @@ public:
         const float cx = screenWidth / 2.f;
         const float cy = screenHeight / 2.f;
 
-        auto* ui = addObject<Object>("UI");
+        auto* ui = addObject("UI");
         ui->transform.position = {cx, cy};
         ui->addComponent<TextComponent>("Title", "MAIN MENU", font);
         auto opt1 = ui->addComponent<TextComponent>("Opt1", "[1] Splash screen", font);
@@ -31,7 +31,7 @@ public:
         auto opt3 = ui->addComponent<TextComponent>("Opt3", "[ESC] Exit", font);
         opt3->setOffset({0.f, 120.f});
 
-        auto inputObject = addObject<Object>("Input");
+        auto inputObject = addObject("Input");
         auto inputCompo = inputObject->addComponent<InputComponent>("MenuInput");
         auto tc1 = inputObject->addComponent<TransitionComponent>("ToFirst", "first");
         auto tc2 = inputObject->addComponent<TransitionComponent>("ToGame",  "game");

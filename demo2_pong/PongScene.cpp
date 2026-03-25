@@ -265,7 +265,7 @@ void PongScene::load() {
     const SDL_Color gray {100, 100, 100, 255};
 
     // --- Dashed center divider ---
-    auto* centerLine = addObject<Object>("CenterLine");
+    auto* centerLine = addObject("CenterLine");
     centerLine->transform.position = {sw * 0.5f, 0.f};
     for (int i = 0; i < 30; ++i) {
         auto* dash = centerLine->addComponent<SquareComponent>(
@@ -274,30 +274,30 @@ void PongScene::load() {
     }
 
     // --- Paddles ---
-    auto* p1 = addObject<Object>("P1Paddle");
+    auto* p1 = addObject("P1Paddle");
     p1->transform.position = {40.f, sh * 0.5f};
     p1->addComponent<SquareComponent>("Shape", paddleSize, white);
 
-    auto* p2 = addObject<Object>("P2Paddle");
+    auto* p2 = addObject("P2Paddle");
     p2->transform.position = {sw - 40.f, sh * 0.5f};
     p2->addComponent<SquareComponent>("Shape", paddleSize, white);
 
     // --- Ball ---
-    auto* ball = addObject<Object>("Ball");
+    auto* ball = addObject("Ball");
     ball->transform.position = {sw * 0.5f, sh * 0.5f};
     ball->addComponent<CircleComponent>("Shape", ballRadius, white);
 
     // --- Score display ---
-    auto* p1ScoreObj = addObject<Object>("P1Score");
+    auto* p1ScoreObj = addObject("P1Score");
     p1ScoreObj->transform.position = {sw * 0.25f, 50.f};
     p1ScoreObj->addComponent<TextComponent>("Text", "0", fontScore);
 
-    auto* p2ScoreObj = addObject<Object>("P2Score");
+    auto* p2ScoreObj = addObject("P2Score");
     p2ScoreObj->transform.position = {sw * 0.75f, 50.f};
     p2ScoreObj->addComponent<TextComponent>("Text", "0", fontScore);
 
     // --- HUD hint ---
-    auto* hud = addObject<Object>("HUD");
+    auto* hud = addObject("HUD");
     hud->transform.position = {sw * 0.5f, sh - 20.f};
     hud->addComponent<TextComponent>("Hint", "Up/Down | First to 10 wins", fontHud);
 
