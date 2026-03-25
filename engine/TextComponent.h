@@ -13,7 +13,7 @@
 class TextComponent : public Component {
 public:
     TextComponent(Object* owner, const std::string& id, std::string text, TTF_Font* font,
-                  Vec2F offset = {}, SDL_Color color = {0xff, 0xff, 0xff, 0xff})
+        SDL_Color color = {0xff, 0xff, 0xff, 0xff}, Vec2F offset = {})
         : Component(owner, id), text(std::move(text)), font(font), color(color), offset(offset) {
         screenSpace = true;
     }
@@ -62,7 +62,7 @@ public:
 
 private:
     std::string text;
-    TTF_Font*   font{};    // non-owning — FontManager is the sole owner
+    TTF_Font*   font{};
     SDL_Color   color;
     Vec2F       pivot{0.5f, 0.5f};
     Vec2F       offset{};
