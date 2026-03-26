@@ -16,6 +16,8 @@
 class BoxColliderComponent;
 class CircleColliderComponent;
 
+constexpr SDL_Color DEBUG_COLLIDER_COLOR{0xff, 0,0, 0xff};
+
 class ColliderComponent : public Component {
 public:
     using CollisionCallback = std::function<void(ColliderComponent* other)>;
@@ -38,7 +40,7 @@ public:
 
     void render(SDL_Renderer* renderer) noexcept override {
         if (!debugDraw) return;
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 200);
+        SDL_SetRenderDrawColor(renderer, DEBUG_COLLIDER_COLOR.r, DEBUG_COLLIDER_COLOR.g, DEBUG_COLLIDER_COLOR.b, DEBUG_COLLIDER_COLOR.a);
         drawCollider(renderer);
     }
 
