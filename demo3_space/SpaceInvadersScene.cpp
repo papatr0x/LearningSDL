@@ -1,12 +1,17 @@
 // Created by Patricio Palma on 20-03-26.
 
 #include "SpaceInvadersScene.h"
+
+#include "ColliderComponent.h"
+#include "CollisionSystem.h"
 #include "FontManager.h"
+#include "GameStateManager.h"
 #include "PlayerController.h"
 #include "SceneOrchestrator.h"
 #include "ScriptComponent.h"
 #include "ShapeComponent.h"
 #include "TextComponent.h"
+
 #include <algorithm>
 #include <format>
 
@@ -20,9 +25,28 @@ constexpr SDL_Color    kMainColor       {0x00, 0xff, 0x00, 0xff};
 constexpr SDL_Color    kBackgroundColor {0x1a, 0x1a, 0x2e, 0xff};
 constexpr Vec2F        kPlayerSize      {40.f, 15.f};
 
-// ---------------------------------------------------------------------------
-// ShipController
-// ---------------------------------------------------------------------------
+constexpr float kPauseInterval = 0.5f;
+constexpr float kStepInterval  = 0.01f;
+constexpr float kStepX         = 8.f;
+constexpr float kStepY         = 20.f;
+constexpr float kBorder        = 20.f;
+
+// Martians setup
+constexpr Vec2F     kMartianSize     {33.f, 30.f};
+constexpr int       kEnemiesPerLine  = 11;
+constexpr int       kEnemyLines      = 5;
+constexpr float     kEnemiesStep     = kMartianSize.x * 1.2f;
+constexpr float     kEnemiesStart    = 40.f;
+constexpr SDL_Color kMartianColor    {0xff, 0xff, 0xff, 0xff};
+
+// Shields
+constexpr int kShieldCount  = 4;
+constexpr float kShieldMargin = 110.f;
+
+struct GameScore {
+    int score{};
+};
+
 class ShipController : public PlayerController {
 public:
     ShipController(float screenWidth, TextComponent* scoreText)
@@ -33,7 +57,6 @@ public:
         bind("Fire",      SDL_SCANCODE_SPACE);
     }
 
-protected:
     void update(const float dt) override {
         if (!hasPawn()) return;
 
@@ -48,7 +71,6 @@ protected:
         if (isActionDown("Fire") && fireCooldown_ <= 0.f) {
             spawnBullet(pos);
             fireCooldown_ = kFireRate;
-            scoreText_->setText(std::format("{:05}", ++score_));
         }
     }
 
@@ -62,12 +84,22 @@ private:
             if (self->transform.position.y < -10.f)
                 self->destroy();
         });
+        auto* collider = bullet->addComponent<BoxColliderComponent>("Collider", kBulletSize);
+        collider->onEnter = [this, thisColl = collider](ColliderComponent* otherColl) {
+            if (otherColl->getOwner()->getTag() == "Martian") {
+                GameScore& score = GameStateManager::instance().get<GameScore>();
+                score.score += 1;
+                scoreText_->setText(std::format("{:05}", score.score));
+                thisColl->getOwner()->destroy();
+                otherColl->getOwner()->destroy();
+            }
+        };
+
     }
 
     float          screenWidth_;
     TextComponent* scoreText_;
     float          fireCooldown_{0.f};
-    int            score_{0};
 };
 
 // ---------------------------------------------------------------------------
@@ -77,31 +109,33 @@ class MartianMoveComponent : public Component {
 public:
     MartianMoveComponent(Object* owner, const std::string& id,
                          const std::vector<Object*>& martians, float screenWidth)
-        : Component(owner, id), martians_(martians), screenWidth_(screenWidth) {
-        setUpdateInterval(kPauseInterval);
-    }
+        : Component(owner, id), martians_(martians), screenWidth_(screenWidth) {}
 
-    void updateComponent(const float) noexcept override {
+    void updateComponent(const float dt) noexcept override {
+        // Removes martians pending to delete of the martians vector. This MUST happen
+        // before flushDestroyQueue frees the objects.
         std::erase_if(martians_, [](const Object* m) { return m->isPendingDestroy(); });
+
         if (martians_.empty()) return;
 
         if (waiting_) {
-            // Pause expired — begin the march
+            pauseAccum_ += dt;
+            if (pauseAccum_ < kPauseInterval) return;
+            pauseAccum_ = 0.f;
             waiting_ = false;
-            setUpdateInterval(kStepInterval);
-            return;
         }
 
-        // Clamp cursor after possible removals
+        stepAccum_ += dt;
+        if (stepAccum_ < kStepInterval) return;
+        stepAccum_ = 0.f;
+
         if (cursor_ >= static_cast<int>(martians_.size()))
             cursor_ = 0;
 
-        // Move one martian this tick
         martians_[cursor_]->transform.position.x += kStepX * dir_;
         ++cursor_;
 
         if (cursor_ >= static_cast<int>(martians_.size())) {
-            // Full sweep done — check boundary, then enter pause
             cursor_ = 0;
 
             float minX = martians_[0]->transform.position.x;
@@ -118,32 +152,27 @@ public:
             }
 
             waiting_ = true;
-            setUpdateInterval(kPauseInterval);
         }
     }
 
 private:
-    static constexpr float kPauseInterval = 1.5f;
-    static constexpr float kStepInterval  = 0.02f;
-    static constexpr float kStepX         = 8.f;
-    static constexpr float kStepY         = 20.f;
-    static constexpr float kBorder        = 20.f;
-
     std::vector<Object*> martians_;
     float                screenWidth_;
     float                dir_{1.f};
     int                  cursor_{0};
     bool                 waiting_{true};
+    float                pauseAccum_{0.f};
+    float                stepAccum_{0.f};
 };
 
 // ---------------------------------------------------------------------------
 // SpaceInvadersScene::load
 // ---------------------------------------------------------------------------
 void SpaceInvadersScene::load() {
+    addSubsystem<CollisionSystem>();
+    GameStateManager::instance().set(GameScore{});
     setBackgroundColor(kBackgroundColor);
-
     TTF_Font* fontScore = FontManager::instance().load("assets/VT323-Regular.ttf", 24.f);
-
     auto& [sw, sh] = getScreenSize();
 
     // Player
@@ -155,39 +184,40 @@ void SpaceInvadersScene::load() {
     constexpr float uiRow1 = 25.f;
     constexpr float uiRow2 = uiRow1 + 28.f;
     auto* ui = addObject("UI");
-    ui->addComponent<TextComponent>("TextScore1Hdr", "SCORE<1>", fontScore, kMainColor, Vec2F{sw * 0.25f, uiRow1});
-    ui->addComponent<TextComponent>("TextHScoreHdr", "HI-SCORE", fontScore, kMainColor, Vec2F{sw * 0.50f, uiRow1});
-    ui->addComponent<TextComponent>("TextScore2Hdr", "SCORE<2>", fontScore, kMainColor, Vec2F{sw * 0.75f, uiRow1});
-    playerScoreTextCompo_ = ui->addComponent<TextComponent>("TextScore1", "00000", fontScore, kMainColor, Vec2F{sw * 0.25f, uiRow2});
-    ui->addComponent<TextComponent>("TextHiScore",  "00000",   fontScore, kMainColor, Vec2F{sw * 0.50f, uiRow2});
-    ui->addComponent<TextComponent>("TextScore2",   "00000",   fontScore, kMainColor, Vec2F{sw * 0.75f, uiRow2});
-    ui->addComponent<TextComponent>("TxtCredit", "CREDIT 00", fontScore, kMainColor, Vec2F{sw * 0.85f, 760.f});
+    ui->addComponent<TextComponent>("TextScore1Hdr", "SCORE<1>", fontScore, kMainColor,
+        Vec2F{sw * 0.25f, uiRow1});
+    ui->addComponent<TextComponent>("TextHScoreHdr", "HI-SCORE", fontScore, kMainColor,
+        Vec2F{sw * 0.50f, uiRow1});
+    ui->addComponent<TextComponent>("TextScore2Hdr", "SCORE<2>", fontScore, kMainColor,
+        Vec2F{sw * 0.75f, uiRow1});
+    playerScoreTextCompo_ = ui->addComponent<TextComponent>("TextScore1", "00000", fontScore,
+        kMainColor, Vec2F{sw * 0.25f, uiRow2});
+    ui->addComponent<TextComponent>("TextHiScore", "00000", fontScore, kMainColor,
+        Vec2F{sw * 0.50f, uiRow2});
+    ui->addComponent<TextComponent>("TextScore2", "00000", fontScore, kMainColor,
+        Vec2F{sw * 0.75f, uiRow2});
+    ui->addComponent<TextComponent>("TxtCredit", "CREDIT 00", fontScore, kMainColor,
+        Vec2F{sw * 0.85f, 760.f});
 
     addPlayerController<ShipController>(static_cast<float>(sw), playerScoreTextCompo_)->possess(player);
 
-    // Martians
-    constexpr Vec2F     kMartianSize     {33.f, 30.f};
-    constexpr int       kEnemiesPerLine  = 11;
-    constexpr int       kEnemyLines      = 5;
-    constexpr float     kEnemiesStep     = kMartianSize.x * 1.2f;
-    constexpr float     kEnemiesStart    = 40.f;
-    constexpr SDL_Color kMartianColor    {0xff, 0xff, 0xff, 0xff};
-
+    // Create Martians
     float base = 300.f;
     for (int i = 0; i < kEnemyLines; ++i) {
         for (int j = 0; j < kEnemiesPerLine; ++j) {
-            auto* martian = addObject(std::format("Martian{}-{}", i, j));
-            martian->transform.position = {kEnemiesStart + kEnemiesStep * j, base};
-            martian->addComponent<SquareComponent>("Shape", kMartianSize, kMartianColor);
-            martians_.push_back(martian);
+            auto* object = addObject(std::format("Martian.{}.{}", i, j));
+            object->transform.position = {kEnemiesStart + kEnemiesStep * j, base};
+            object->setTag("Martian");
+            object->addComponent<SquareComponent>("Shape", kMartianSize, kMartianColor);
+            auto* collider = object->addComponent<CircleColliderComponent>("Collider", kMartianSize.x/2.f - 1.f);
+            collider->debugDraw = true;
+            martians_.push_back(object);
         }
         base -= kMartianSize.y + 10.f;
     }
     addObject("MoveMartians")->addComponent<MartianMoveComponent>("TheMoverCompo", martians_, static_cast<float>(sw));
 
-    // Shields
-    constexpr int   kShieldCount  = 4;
-    constexpr float kShieldMargin = 110.f;
+    // Create Shields
     for (int i = 0; i < kShieldCount; ++i) {
         auto* shield = addObject(std::format("Shield{}", i));
         shield->transform.position = {kShieldMargin + (sw - 2 * kShieldMargin) * (i / 3.f), 650.f};
