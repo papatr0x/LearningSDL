@@ -12,7 +12,7 @@
 
 int main() {
     GameEngine& engine = GameEngine::instance();
-    if (!engine.init("Space Invaders", 600, 800)) {
+    if (!engine.init("Space Invaders++", 600, 800)) {
         std::cerr << "Cannot initialize the game.\n";
         return EXIT_FAILURE;
     }
