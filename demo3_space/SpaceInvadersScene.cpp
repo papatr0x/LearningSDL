@@ -50,8 +50,8 @@ constexpr float kShieldMargin = 110.f;
 // ---------------------------------------------------------------------------
 class ShipController : public PlayerController {
 public:
-    ShipController(float screenWidth, TextComponent* scoreText)
-        : PlayerController(0), screenWidth_(screenWidth), scoreText_(scoreText) {
+    explicit ShipController(float screenWidth)
+        : PlayerController(0), screenWidth_(screenWidth) {
         bind("Exit",      SDL_SCANCODE_ESCAPE);
         bind("MoveLeft",  SDL_SCANCODE_LEFT);
         bind("MoveRight", SDL_SCANCODE_RIGHT);
@@ -86,21 +86,17 @@ private:
                 self->destroy();
         });
         auto* collider = bullet->addComponent<BoxColliderComponent>("Collider", kBulletSize);
-        collider->onEnter = [this, thisColl = collider](ColliderComponent* otherColl) {
-            if (otherColl->getOwner()->getTag() == "Martian") {
-                GameStats& score = GameStateManager::instance().get<GameStats>();
-                score.score += kPointsPerMartian;
-                scoreText_->setText(std::format("{:05}", score.score));
-                thisColl->getOwner()->destroy();
-                otherColl->getOwner()->destroy();
-            }
+        collider->onEnter = [thisColl = collider](const ColliderComponent* otherColl) {
+            if (otherColl->getOwner()->getTag() != "Martian") return;
+            GameStateManager::instance().get<GameStats>().score += kPointsPerMartian;
+            thisColl->getOwner()->destroy();
+            otherColl->getOwner()->destroy();
         };
 
     }
 
-    float          screenWidth_;
-    TextComponent* scoreText_;
-    float          fireCooldown_{0.f};
+    float screenWidth_;
+    float fireCooldown_{0.f};
 };
 
 // ---------------------------------------------------------------------------
@@ -205,6 +201,13 @@ void SpaceInvadersScene::load() {
         Vec2F{sw * 0.75f, uiRow1});
     playerScoreTextCompo_ = ui->addComponent<TextComponent>("TextScore1", std::format("{:05}", stats.score), fontScore,
         kMainColor, Vec2F{sw * 0.25f, uiRow2});
+    ui->addComponent<ScriptComponent>("ScoreUpdater",
+        [scoreText = playerScoreTextCompo_, prev = stats.score](float, Object*) mutable {
+            const int current = GameStateManager::instance().get<GameStats>().score;
+            if (current == prev) return;
+            prev = current;
+            scoreText->setText(std::format("{:05}", current));
+        });
     ui->addComponent<TextComponent>("TextHiScore", "00000" , fontScore, kMainColor,
         Vec2F{sw * 0.50f, uiRow2});
     ui->addComponent<TextComponent>("TextScore2", "00000", fontScore, kMainColor,
@@ -212,7 +215,7 @@ void SpaceInvadersScene::load() {
     ui->addComponent<TextComponent>("TxtCredit", "CREDIT 00", fontScore, kMainColor,
         Vec2F{sw * 0.85f, 760.f});
 
-    addPlayerController<ShipController>(static_cast<float>(sw), playerScoreTextCompo_)->possess(player);
+    addPlayerController<ShipController>(static_cast<float>(sw))->possess(player);
 
     // Create Martians
     float base = 300.f;
