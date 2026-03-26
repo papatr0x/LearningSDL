@@ -112,9 +112,15 @@ public:
         : Component(owner, id), martians_(martians), screenWidth_(screenWidth) {}
 
     void updateComponent(const float dt) noexcept override {
-        // Removes martians pending to delete of the martians vector. This MUST happen
-        // before flushDestroyQueue frees the objects.
+        // Count destroyed entries before cursor_ so we can keep it in sync after the erase.
+        // Removals at indices < cursor_ shift everything down, causing cursor_ to skip a live martian.
+        int removedBeforeCursor = 0;
+        for (int i = 0; i < cursor_ && i < static_cast<int>(martians_.size()); ++i) {
+            if (martians_[i]->isPendingDestroy())
+                ++removedBeforeCursor;
+        }
         std::erase_if(martians_, [](const Object* m) { return m->isPendingDestroy(); });
+        cursor_ = std::max(0, cursor_ - removedBeforeCursor);
 
         if (martians_.empty()) return;
 
