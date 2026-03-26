@@ -5,7 +5,6 @@
 #include "ColliderComponent.h"
 #include "CollisionSystem.h"
 #include "FontManager.h"
-#include "GameEngine.h"
 #include "PlayerController.h"
 #include "PongState.h"
 #include "SceneOrchestrator.h"
@@ -81,13 +80,6 @@ public:
     BallController(float screenW, float screenH)
         : screenW_(screenW), screenH_(screenH) {}
 
-    // Called by the ball's onEnter callback when it hits a top/bottom wall.
-    void bounceFromWall(const bool top) {
-        if (!launched_) return;
-        dy_ = top ? std::abs(dy_) : -std::abs(dy_);
-        getPawn()->transform.position.y = top ? kRadius : screenH_ - kRadius;
-    }
-
     // Called by the ball's onEnter callback when it hits a paddle.
     // paddleBounds comes from other->getBounds() — used for the push-out.
     void bounceFromPaddle(const Vec2F& paddleCenter, const bool isLeft,
@@ -150,6 +142,15 @@ protected:
         auto& pos = getPawn()->transform.position;
         pos.x += dx_ * kSpeed * dt;
         pos.y += dy_ * kSpeed * dt;
+
+        // Top / bottom wall bounce.
+        if (pos.y - kRadius <= 0.f) {
+            pos.y = kRadius;
+            dy_   = std::abs(dy_);
+        } else if (pos.y + kRadius >= screenH_) {
+            pos.y = screenH_ - kRadius;
+            dy_   = -std::abs(dy_);
+        }
 
         // Scoring — left/right bounds remain a simple range check.
         if (pos.x + kRadius < 0.f) {
@@ -256,21 +257,6 @@ void PongScene::load() {
     p2->addComponent<SquareComponent>("Shape", paddleSize, white);
     p2->addComponent<BoxColliderComponent>("Collider", paddleSize)->isTrigger = true;
 
-    // --- Top / bottom walls (invisible triggers) ---
-    constexpr float kWallH = 20.f;
-
-    auto* wallTop = addObject("WallTop");
-    wallTop->transform.position = {sw * 0.5f, -kWallH * 0.5f};
-    wallTop->setTag("WallTop");
-    wallTop->addComponent<BoxColliderComponent>(
-        "Collider", Vec2F{static_cast<float>(sw) + 40.f, kWallH})->isTrigger = true;
-
-    auto* wallBottom = addObject("WallBottom");
-    wallBottom->transform.position = {sw * 0.5f, static_cast<float>(sh) + kWallH * 0.5f};
-    wallBottom->setTag("WallBottom");
-    wallBottom->addComponent<BoxColliderComponent>(
-        "Collider", Vec2F{static_cast<float>(sw) + 40.f, kWallH})->isTrigger = true;
-
     // --- Ball ---
     auto* ball = addObject("Ball");
     ball->transform.position = {sw * 0.5f, sh * 0.5f};
@@ -301,9 +287,7 @@ void PongScene::load() {
     // All bounce logic is dispatched here, keeping BallController::update() clean.
     ballCol->onEnter = [ballCtrl](ColliderComponent* other) {
         const std::string& tag = other->getOwner()->getTag();
-        if (tag == "WallTop" || tag == "WallBottom") {
-            ballCtrl->bounceFromWall(tag == "WallTop");
-        } else if (tag == "P1Paddle" || tag == "P2Paddle") {
+        if (tag == "P1Paddle" || tag == "P2Paddle") {
             ballCtrl->bounceFromPaddle(
                 other->getOwner()->transform.position,
                 tag == "P1Paddle",
