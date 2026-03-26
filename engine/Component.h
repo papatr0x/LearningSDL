@@ -29,7 +29,7 @@ public:
     bool isEnabled() const { return enabled; }
     void setEnabled(bool value) { enabled = value; }
     const std::string& getName() const { return name; }
-    void setUpdateInterval(float seconds) { intervalSeconds = seconds; }
+    void setUpdateInterval(const float seconds) { intervalSeconds = seconds; }
     float getUpdateInterval() const { return intervalSeconds; }
     bool isPendingDestroy() const { return pendingDestroy; }
     void destroy() { pendingDestroy = true; }

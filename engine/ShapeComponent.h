@@ -58,8 +58,7 @@ protected:
 // ---------------------------------------------------------------------------
 class SquareComponent : public ShapeComponent {
 public:
-    SquareComponent(Object* owner, const std::string& id,
-                    Vec2F size, SDL_Color color, bool filled = true)
+    SquareComponent(Object* owner, const std::string& id, Vec2F size, SDL_Color color, bool filled = true)
         : ShapeComponent(owner, id, color, filled), size_(size) {}
 
     void  setSize(Vec2F size) { size_ = size; }

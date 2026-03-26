@@ -10,10 +10,12 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 
+constexpr SDL_Color DEFAULT_TEXT_COLOR = {0xff, 0xff, 0xff, 0xff};
+
 class TextComponent : public Component {
 public:
     TextComponent(Object* owner, const std::string& id, std::string text, TTF_Font* font,
-        SDL_Color color = {0xff, 0xff, 0xff, 0xff}, Vec2F offset = {})
+        SDL_Color color = DEFAULT_TEXT_COLOR, Vec2F offset = {})
         : Component(owner, id), text(std::move(text)), font(font), color(color), offset(offset) {
         screenSpace = true;
     }
