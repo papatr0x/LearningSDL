@@ -71,21 +71,69 @@ private:
 };
 
 // ---------------------------------------------------------------------------
-// MartianMoverComponent
+// MartianMoveComponent
 // ---------------------------------------------------------------------------
-class MartianMoverComponent : public Component {
+class MartianMoveComponent : public Component {
 public:
-    MartianMoverComponent(Object* owner, const std::string& id, const std::vector<Object*>& martians)
-        : Component(owner, id), martians_(martians) {
-        setUpdateInterval(1.5f);
+    MartianMoveComponent(Object* owner, const std::string& id,
+                         const std::vector<Object*>& martians, float screenWidth)
+        : Component(owner, id), martians_(martians), screenWidth_(screenWidth) {
+        setUpdateInterval(kPauseInterval);
     }
 
-    void updateComponent([[maybe_unused]] const float dt) noexcept override {
-        // TODO: move martians left/right and step down
+    void updateComponent(const float) noexcept override {
+        std::erase_if(martians_, [](const Object* m) { return m->isPendingDestroy(); });
+        if (martians_.empty()) return;
+
+        if (waiting_) {
+            // Pause expired — begin the march
+            waiting_ = false;
+            setUpdateInterval(kStepInterval);
+            return;
+        }
+
+        // Clamp cursor after possible removals
+        if (cursor_ >= static_cast<int>(martians_.size()))
+            cursor_ = 0;
+
+        // Move one martian this tick
+        martians_[cursor_]->transform.position.x += kStepX * dir_;
+        ++cursor_;
+
+        if (cursor_ >= static_cast<int>(martians_.size())) {
+            // Full sweep done — check boundary, then enter pause
+            cursor_ = 0;
+
+            float minX = martians_[0]->transform.position.x;
+            float maxX = martians_[0]->transform.position.x;
+            for (const auto* m : martians_) {
+                minX = std::min(minX, m->transform.position.x);
+                maxX = std::max(maxX, m->transform.position.x);
+            }
+
+            if (minX + kStepX * dir_ < kBorder || maxX + kStepX * dir_ > screenWidth_ - kBorder) {
+                for (auto* m : martians_)
+                    m->transform.position.y += kStepY;
+                dir_ = -dir_;
+            }
+
+            waiting_ = true;
+            setUpdateInterval(kPauseInterval);
+        }
     }
 
 private:
+    static constexpr float kPauseInterval = 1.5f;
+    static constexpr float kStepInterval  = 0.02f;
+    static constexpr float kStepX         = 8.f;
+    static constexpr float kStepY         = 20.f;
+    static constexpr float kBorder        = 20.f;
+
     std::vector<Object*> martians_;
+    float                screenWidth_;
+    float                dir_{1.f};
+    int                  cursor_{0};
+    bool                 waiting_{true};
 };
 
 // ---------------------------------------------------------------------------
@@ -135,7 +183,7 @@ void SpaceInvadersScene::load() {
         }
         base -= kMartianSize.y + 10.f;
     }
-    addObject("MoveMartians")->addComponent<MartianMoverComponent>("TheMoverCompo", martians_);
+    addObject("MoveMartians")->addComponent<MartianMoveComponent>("TheMoverCompo", martians_, static_cast<float>(sw));
 
     // Shields
     constexpr int   kShieldCount  = 4;
